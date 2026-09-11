@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Producto {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  precioBase  Decimal
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  detallesVenta DetalleVenta[]
+}
+
+model Cliente {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  dni         String?  @unique
+  ruc         String?  @unique
+  direccion   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ventas Venta[]
+}
+
+model Venta {
+  id              Int      @id @default(autoincrement())
+  clienteId       Int?
+  metodoPago      MetodoPago
+  montoRecibido   Decimal?
+  vuelto          Decimal?
+  total           Decimal
+  estado          EstadoVenta
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  cliente         Cliente?       @relation(fields: [clienteId], references: [id])
+  detalles        DetalleVenta[]
+  documento       Documento?
+}
+
+model DetalleVenta {
+  id             Int      @id @default(autoincrement())
+  ventaId        Int
+  productoId     Int
+  cantidad       Int
+  precioUnitario Decimal
+  subtotal       Decimal
+  createdAt      DateTime @default(now())
+
+  venta          Venta    @relation(fields: [ventaId], references: [id])
+  producto       Producto @relation(fields: [productoId], references: [id])
+}
+
+model Documento {
+  id               Int      @id @default(autoincrement())
+  ventaId          Int      @unique
+  tipo             TipoDocumento
+  serie            String
+  numero           Int
+  estado           EstadoDocumento
+  fechaEmision     DateTime
+  codigoRespuesta  String?
+  mensajeRespuesta String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  venta            Venta @relation(fields: [ventaId], references: [id])
+
+  @@unique([serie, numero])
+}
+
+model Configuracion {
+  id              Int      @id @default(autoincrement())
+  ruc             String
+  razonSocial     String
+  nombreComercial String?
+  direccion       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum MetodoPago {
+  EFECTIVO
+  YAPE
+  PLIN
+  TRANSFERENCIA
+  TARJETA
+}
+
+enum EstadoVenta {
+  COMPLETADA
+  ANULADA
+}
+
+enum TipoDocumento {
+  NOTA
+  BOLETA
+  FACTURA
+}
+
+enum EstadoDocumento {
+  PENDIENTE
+  EMITIDO
+  RECHAZADO
+}
