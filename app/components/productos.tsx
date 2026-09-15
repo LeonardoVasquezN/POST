@@ -13,7 +13,7 @@ export default function ProductosPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
 
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false); 
   const [nombre, setNombre] = useState("");
   const [precioBase, setPrecioBase] = useState("");
 
@@ -31,48 +31,40 @@ export default function ProductosPage() {
     cargarProductos();
   }, []);
 
-  async function crearProducto() {
-    const response = await fetch("/api/productos", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        nombre,
-        precioBase: Number(precioBase),
-      }),
-    });
+  async function guardarProducto() {
+    if (productoEditando) {
+      const response = await fetch("/api/productos", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: productoEditando.id,
+          nombre,
+          precioBase: Number(precioBase),
+        }),
+      });
 
-    if (!response.ok) {
-      alert("No se pudo crear el producto");
-      return;
-    }
+      if (!response.ok) {
+        alert("No se pudo actualizar el producto");
+        return;
+      }
+    } else {
+      const response = await fetch("/api/productos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre,
+          precioBase: Number(precioBase),
+        }),
+      });
 
-    setNombre("");
-    setPrecioBase("");
-    setMostrarFormulario(false);
-
-    await cargarProductos();
-  }
-
-  async function edtiarProducto() {
-    if(!productoEditando) return;
-
-    const response = await fetch("/api/productos", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: productoEditando.id,
-        nombre,
-        precioBase: Number(precioBase),
-      })
-    })
-
-    if(!response.ok) {
-      alert("No se pudo actualizar el producto");
-      return;
+      if (!response.ok) {
+        alert("No se pudo crear el producto");
+        return;
+      }
     }
 
     setNombre("");
@@ -96,7 +88,9 @@ export default function ProductosPage() {
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
           className="rounded-lg bg-black px-4 py-2 text-white"
         >
-          Nuevo producto
+          <h2 className="text-lg font-semibold">
+            {productoEditando ? "Editar producto" : "Nuevo producto"}
+          </h2>
         </button>
       </div>
 
@@ -142,10 +136,12 @@ export default function ProductosPage() {
               </button>
 
               <button
-                onClick={crearProducto}
+                onClick={() => {
+                  guardarProducto();
+                }}
                 className="rounded-lg bg-black px-4 py-2 text-white"
               >
-                Guardar
+                {productoEditando ? "Actualizar" : "Guardar"}
               </button>
             </div>
           </div>
