@@ -16,6 +16,7 @@ export default function ProductosPage() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false); 
   const [nombre, setNombre] = useState("");
   const [precioBase, setPrecioBase] = useState("");
+  const [textoBusqueda, setTextoBusqueda] = useState("");
 
   const [productoEditando, setProductoEditando] = useState<Producto | null>(null);
 
@@ -74,6 +75,30 @@ export default function ProductosPage() {
 
     await cargarProductos();
   }
+
+  async function cambiarEstadoProducto(producto: Producto) {
+    const response = await fetch("/api/productos", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: producto.id,
+        activo: !producto.activo,
+      }),
+    });
+
+    if (!response.ok) {
+      alert("No se pudo cambiar el estado del producto");
+      return;
+    }
+
+    await cargarProductos();
+  }
+
+  const productosFiltrados = productos.filter((producto) =>
+    producto.nombre.toLowerCase().includes(textoBusqueda.toLowerCase())
+  );
 
   if (cargando) {
     return <p>Cargando productos...</p>;
@@ -148,8 +173,18 @@ export default function ProductosPage() {
         </div>
       )}
 
+      <div className="mt-6">
+        <input
+          type="text"
+          value={textoBusqueda}
+          onChange={(e) => setTextoBusqueda(e.target.value)}
+          className="w-full rounded-lg border p-2"
+          placeholder="Buscar producto..."
+        />
+      </div>
+
       <div className="mt-6 space-y-3">
-        {productos.map((producto) => (
+        {productosFiltrados.map((producto) => (
           <div
             key={producto.id}
             className="flex justify-between rounded-lg border p-4"
@@ -169,6 +204,18 @@ export default function ProductosPage() {
             >
               Editar
             </button>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={producto.activo}
+                onChange={() => cambiarEstadoProducto(producto)}
+              />
+
+              <span>
+                {producto.activo ? "Activo" : "Inactivo"}
+              </span>
+            </label>
           </div>
         ))}
       </div>

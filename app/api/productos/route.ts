@@ -2,9 +2,6 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const productos = await prisma.producto.findMany({
-    where: {
-      activo: true,
-    },
     orderBy: {
       nombre: "asc",
     },
@@ -48,9 +45,22 @@ export async function PUT(request: Request) {
 
   if(!Number.isInteger(id) || id <= 0) {
     return Response.json(
-      {error: "El id es inválido"},
+      {error: "El id del producto no es válido"},
       {status: 400}
     )
+  }
+
+  if (typeof body.activo === "boolean") {
+    const producto = await prisma.producto.update({
+      where: {
+        id: id,
+      },
+      data: {
+        activo: body.activo,
+      },
+    });
+
+    return Response.json(producto);
   }
 
   if(!body.nombre?.trim()) {
@@ -76,6 +86,7 @@ export async function PUT(request: Request) {
     data: {
       nombre: body.nombre.trim(),
       precioBase: precioBase,
+      activo: body.activo
     },
   });
 
