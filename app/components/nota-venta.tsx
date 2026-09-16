@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 type MetodoPago =
   | "EFECTIVO"
@@ -12,8 +13,23 @@ type MetodoPago =
 type ProductoVenta = {
   id: number;
   nombre: string;
-  precio: number;
-  cantidad: number;
+  precio: number | string;
+  cantidad: number | string;
+};
+
+type Producto = {
+  id: number;
+  nombre: string;
+  precioBase: string;
+  activo: boolean;
+};
+
+type Cliente = {
+  id: number;
+  nombre: string;
+  dni: string | null;
+  ruc: string | null;
+  direccion: string | null;
 };
 
 export default function NotaVenta() {
@@ -21,13 +37,36 @@ export default function NotaVenta() {
   const [busquedaProducto, setBusquedaProducto] = useState("");
 
   const [productos, setProductos] = useState<ProductoVenta[]>([]);
+  const [productosDisponibles, setProductosDisponibles] = useState<Producto[]>([]);
 
   const [metodoPago, setMetodoPago] = useState<MetodoPago>("");
   const [montoRecibido, setMontoRecibido] = useState("");
 
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [busquedaCliente, setBusquedaCliente] = useState("");
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
+
+  useEffect(() => {
+    async function cargarDatos() {
+      const responseProductos = await fetch("/api/productos");
+      const dataProductos = await responseProductos.json();
+
+      setProductosDisponibles(
+        dataProductos.filter((producto: Producto) => producto.activo)
+      );
+
+      const responseClientes = await fetch("/api/clientes");
+      const dataClientes = await responseClientes.json();
+
+      setClientes(dataClientes);
+    }
+
+    cargarDatos();
+  }, []);
+
   const total = productos.reduce(
     (acumulado, producto) =>
-      acumulado + producto.cantidad * producto.precio,
+      acumulado + Number(producto.cantidad) * Number(producto.precio),
     0
   );
 
@@ -36,9 +75,86 @@ export default function NotaVenta() {
       ? Number(montoRecibido) - total
       : 0;
 
-  function agregarProducto() {
-    console.log("Buscar producto:", busquedaProducto);
+  function agregarProducto(productoEncontrado: Producto) {
+    const productoYaAgregado = productos.find(
+      (producto) => producto.id === productoEncontrado.id
+    );
+
+    if (productoYaAgregado) {
+      setProductos(
+        productos.map((producto) =>
+          producto.id === productoEncontrado.id
+            ? {
+                ...producto,
+                cantidad: Number(producto.cantidad) + 1,
+              }
+            : producto
+        )
+      );
+    } else {
+      setProductos([
+        ...productos,
+        {
+          id: productoEncontrado.id,
+          nombre: productoEncontrado.nombre,
+          precio: Number(productoEncontrado.precioBase),
+          cantidad: 1,
+        },
+      ]);
+    }
+
+    setBusquedaProducto("");
   }
+
+  function eliminarProducto(id: number) {
+    setProductos(
+      productos.filter((producto) => producto.id !== id)
+    );
+  }
+
+  function validarVenta() {
+    if(productos.length === 0) {
+      alert("Debes agregar al menos un producto");
+      return;
+    }
+
+    for (const producto of productos) {
+      const cantidad = Number(producto.cantidad);
+      const precio = Number(producto.precio);
+
+      if (
+        producto.cantidad === "" ||
+        !Number.isInteger(cantidad) ||
+        cantidad <= 0
+      ) {
+        alert(`La cantidad de "${producto.nombre}" no es válida`);
+        return;
+      }
+
+      if (
+        producto.precio === "" ||
+        !Number.isFinite(precio) ||
+        precio < 0
+      ) {
+        alert(`El precio de "${producto.nombre}" no es válido`);
+        return;
+      }
+    }
+
+    alert("Venta válida");
+  }
+
+  const productosFiltrados = productosDisponibles.filter((producto) =>
+    producto.nombre
+      .toLowerCase()
+      .includes(busquedaProducto.toLowerCase())
+  );
+
+  const clientesFiltrados = clientes.filter((cliente) =>
+    `${cliente.nombre} ${cliente.dni ?? ""} ${cliente.ruc ?? ""}`
+      .toLowerCase()
+      .includes(busquedaCliente.toLowerCase())
+  );
 
   return (
     <main className="min-h-screen p-8">
@@ -49,21 +165,60 @@ export default function NotaVenta() {
         <section className="mt-8 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">Cliente</h2>
 
-          <div className="mt-4 flex gap-3">
-            <input
-              type="text"
-              value={cliente}
-              onChange={(e) => setCliente(e.target.value)}
-              className="w-full rounded-lg border p-3"
-              placeholder="Buscar cliente..."
-            />
+          <div className="relative mt-4">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={
+                  clienteSeleccionado
+                    ? clienteSeleccionado.nombre
+                    : busquedaCliente
+                }
+                onChange={(e) => {
+                  setClienteSeleccionado(null);
+                  setBusquedaCliente(e.target.value);
+                }}
+                className="w-full rounded-lg border p-3"
+                placeholder="Buscar cliente por nombre, DNI o RUC..."
+              />
 
-            <button
-              type="button"
-              className="rounded-lg border px-5 py-3"
-            >
-              Nuevo cliente
-            </button>
+              <Link
+                href="/clientes"
+                className="rounded-lg border px-5 py-3 whitespace-nowrap"
+              >
+                Nuevo cliente
+              </Link>
+            </div>
+
+            {busquedaCliente && clientesFiltrados.length > 0 && (
+              <div className="absolute left-0 right-0 z-10 mt-1 rounded-lg border bg-black shadow">
+                {clientesFiltrados.map((cliente) => (
+                  <button
+                    key={cliente.id}
+                    type="button"
+                    onClick={() => {
+                      setClienteSeleccionado(cliente);
+                      setBusquedaCliente("");
+                    }}
+                    className="block w-full border-b p-3 text-left hover:bg-neutral-800"
+                  >
+                    <div>{cliente.nombre}</div>
+
+                    {cliente.dni && (
+                      <div className="text-sm text-gray-400">
+                        DNI: {cliente.dni}
+                      </div>
+                    )}
+
+                    {cliente.ruc && (
+                      <div className="text-sm text-gray-400">
+                        RUC: {cliente.ruc}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -71,22 +226,40 @@ export default function NotaVenta() {
         <section className="mt-6 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">Productos</h2>
 
-          <div className="mt-4 flex gap-3">
-            <input
-              type="text"
-              value={busquedaProducto}
-              onChange={(e) => setBusquedaProducto(e.target.value)}
-              className="w-full rounded-lg border p-3"
-              placeholder="Buscar producto..."
-            />
+          <div className="relative mt-4">
+            <div className="relative mt-4">
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={busquedaProducto}
+                  onChange={(e) => setBusquedaProducto(e.target.value)}
+                  className="w-full rounded-lg border p-3"
+                  placeholder="Buscar producto..."
+                />
 
-            <button
-              type="button"
-              onClick={agregarProducto}
-              className="rounded-lg bg-black px-5 py-3 text-white"
-            >
-              Agregar
-            </button>
+                <Link
+                  href="/productos"
+                  className="rounded-lg border px-5 py-3 whitespace-nowrap"
+                >
+                  Nuevo producto
+                </Link>
+              </div>
+
+              {busquedaProducto && productosFiltrados.length > 0 && (
+                <div className="absolute left-0 right-0 z-10 mt-1 rounded-lg border bg-black shadow">
+                  {productosFiltrados.map((producto) => (
+                    <button
+                      key={producto.id}
+                      type="button"
+                      onClick={() => agregarProducto(producto)}
+                      className="block w-full border-b p-3 text-left hover:bg-neutral-800"
+                    >
+                      {producto.nombre}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {productos.length > 0 ? (
@@ -112,6 +285,20 @@ export default function NotaVenta() {
                           type="number"
                           min="1"
                           value={producto.cantidad}
+                          onChange={(e) => {
+                            const cantidad = e.target.value;
+
+                            setProductos(
+                              productos.map((item) =>
+                                item.id === producto.id
+                                  ? {
+                                      ...item,
+                                      cantidad: cantidad,
+                                    }
+                                  : item
+                              )
+                            );
+                          }}
                           className="w-20 rounded-lg border p-2"
                         />
                       </td>
@@ -122,19 +309,34 @@ export default function NotaVenta() {
                           min="0"
                           step="0.01"
                           value={producto.precio}
+                          onChange={(e) => {
+                            const valor = e.target.value;
+
+                            setProductos(
+                              productos.map((item) =>
+                                item.id === producto.id
+                                  ? {
+                                      ...item,
+                                      precio: valor
+                                    }
+                                  : item
+                              )
+                            );
+                          }}
                           className="w-28 rounded-lg border p-2"
                         />
                       </td>
 
                       <td className="p-3">
                         S/{" "}
-                        {(producto.cantidad * producto.precio).toFixed(2)}
+                        {(Number(producto.cantidad) * Number(producto.precio)).toFixed(2)}
                       </td>
 
                       <td className="p-3">
                         <button
                           type="button"
                           className="text-red-600"
+                          onClick={() => eliminarProducto(producto.id)}
                         >
                           Eliminar
                         </button>
@@ -219,6 +421,7 @@ export default function NotaVenta() {
           <button
             type="button"
             className="rounded-lg bg-black px-8 py-4 text-lg font-semibold text-white"
+            onClick={validarVenta}
           >
             Registrar venta
           </button>
