@@ -72,7 +72,6 @@ model Documento {
   mensajeRespuesta String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-
   venta            Venta @relation(fields: [ventaId], references: [id])
 
   @@unique([serie, numero])
@@ -86,6 +85,14 @@ model Configuracion {
   direccion       String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model SecuenciaDocumento {
+  id        Int      @id @default(autoincrement())
+  serie     String   @unique
+  siguiente Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum MetodoPago {
