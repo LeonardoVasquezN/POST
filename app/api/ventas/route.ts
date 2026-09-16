@@ -6,7 +6,6 @@ export async function POST(request: Request) {
 
     const { clienteId, metodoPago, montoRecibido, detalles } = body;
 
-    // 1. Debe existir al menos un producto
     if (!Array.isArray(detalles) || detalles.length === 0) {
       return Response.json(
         { error: "La venta debe tener al menos un producto" },
@@ -14,7 +13,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Validar método de pago
     const metodosPagoValidos = [
       "EFECTIVO",
       "YAPE",
@@ -30,7 +28,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Validar cliente si se recibió
     if (clienteId !== undefined && clienteId !== null) {
       if (!Number.isInteger(Number(clienteId)) || Number(clienteId) <= 0) {
         return Response.json(
@@ -53,7 +50,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // 4. Validar cada detalle
     for (const detalle of detalles) {
       const productoId = Number(detalle.productoId);
       const cantidad = Number(detalle.cantidad);
@@ -101,7 +97,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // 5. Calcular total en el servidor
     const total = detalles.reduce(
       (acumulado: number, detalle: any) => {
         return (
@@ -112,7 +107,6 @@ export async function POST(request: Request) {
       0
     );
 
-    // 6. Validar efectivo
     if (metodoPago === "EFECTIVO") {
       const recibido = Number(montoRecibido);
 
@@ -124,11 +118,79 @@ export async function POST(request: Request) {
       }
     }
 
-    // Por ahora todavía NO guardamos.
-    return Response.json({
-      mensaje: "Venta válida",
-      total,
+    const venta = await prisma.$transaction(async (tx) => {
+      const secuencia = await tx.SecuenciaDocumento.update({
+        where: {
+          serie: "NV01",
+        },
+        data: {
+          siguiente: {
+            increment: 1,
+          },
+        },
+      });
+
+      const numero = secuencia.siguiente - 1;
+
+      const ventaCreada = await tx.venta.create({
+        data: {
+          clienteId:
+            clienteId !== undefined && clienteId !== null
+              ? Number(clienteId)
+              : null,
+
+          metodoPago,
+
+          montoRecibido:
+            metodoPago === "EFECTIVO"
+              ? Number(montoRecibido)
+              : null,
+
+          vuelto:
+            metodoPago === "EFECTIVO"
+              ? Number(montoRecibido) - total
+              : null,
+          total,
+
+          estado: "COMPLETADA",
+
+          detalles: {
+            create: detalles.map((detalle: any) => ({
+              productoId: Number(detalle.productoId),
+              cantidad: Number(detalle.cantidad),
+              precioUnitario: Number(detalle.precioUnitario),
+              subtotal:
+                Number(detalle.cantidad) *
+                Number(detalle.precioUnitario),
+            })),
+          },
+
+          documento: {
+            create: {
+              tipo: "NOTA",
+              serie: "NV01",
+              numero,
+              estado: "EMITIDO",
+              fechaEmision: new Date(),
+            },
+          },
+        },
+
+        include: {
+          cliente: true,
+          detalles: {
+            include: {
+              producto: true,
+            },
+          },
+          documento: true,
+        },
+      });
+
+      return ventaCreada;
     });
+
+    return Response.json(venta, { status: 201 });
   } catch (error) {
     console.error(error);
 

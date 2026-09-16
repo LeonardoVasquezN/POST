@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+import ComprobantePreview from "./comprobante-preview";
+
 type MetodoPago =
   | "EFECTIVO"
   | "YAPE"
@@ -33,7 +35,6 @@ type Cliente = {
 };
 
 export default function NotaVenta() {
-  const [cliente, setCliente] = useState("");
   const [busquedaProducto, setBusquedaProducto] = useState("");
 
   const [productos, setProductos] = useState<ProductoVenta[]>([]);
@@ -45,6 +46,9 @@ export default function NotaVenta() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [busquedaCliente, setBusquedaCliente] = useState("");
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
+
+  const [ventaEmitida, setVentaEmitida] = useState<any>(null);
+  const [mostrarModalImpresion, setMostrarModalImpresion] = useState(false);
 
   useEffect(() => {
     async function cargarDatos() {
@@ -112,9 +116,20 @@ export default function NotaVenta() {
     );
   }
 
-  function validarVenta() {
+  async function validarVenta() {
+
+    if (!clienteSeleccionado) {
+      alert("Debes seleccionar un cliente");
+      return;
+    }
+
     if(productos.length === 0) {
       alert("Debes agregar al menos un producto");
+      return;
+    }
+
+    if (!metodoPago) {
+      alert("Debes seleccionar un método de pago");
       return;
     }
 
@@ -141,7 +156,52 @@ export default function NotaVenta() {
       }
     }
 
-    alert("Venta válida");
+    if (metodoPago === "EFECTIVO") {
+      const recibido = Number(montoRecibido);
+
+      if (
+        montoRecibido === "" ||
+        !Number.isFinite(recibido) ||
+        recibido < total
+      ) {
+        alert("El monto recibido no es suficiente");
+        return;
+      }
+    }
+
+    const venta = {
+      clienteId: clienteSeleccionado.id,
+      metodoPago,
+      montoRecibido:
+        metodoPago === "EFECTIVO"
+          ? Number(montoRecibido)
+          : null,
+      detalles: productos.map((producto) => ({
+        productoId: producto.id,
+        cantidad: Number(producto.cantidad),
+        precioUnitario: Number(producto.precio),
+      })),
+    };
+
+    const response = await fetch("/api/ventas", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(venta),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error);
+      return;
+    }
+
+    setVentaEmitida(data);
+    setMostrarModalImpresion(true);
+
+    console.log("RESPUESTA:", data);
   }
 
   const productosFiltrados = productosDisponibles.filter((producto) =>
@@ -363,7 +423,6 @@ export default function NotaVenta() {
           </div>
         </section>
 
-        {/* Pago */}
         <section className="mt-6 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">Método de pago</h2>
 
@@ -416,17 +475,46 @@ export default function NotaVenta() {
           )}
         </section>
 
-        {/* Registrar */}
         <div className="mt-8 flex justify-end">
           <button
             type="button"
-            className="rounded-lg bg-black px-8 py-4 text-lg font-semibold text-white"
+            className="rounded-lg bg-black px-8 py-4 text-lg font-semibold text-white border border-white"
             onClick={validarVenta}
           >
-            Registrar venta
+            Emitir Comprobante
           </button>
         </div>
       </div>
+
+      {mostrarModalImpresion && ventaEmitida && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="max-h-[90vh] overflow-auto rounded-lg bg-neutral-100 p-6 shadow-xl">
+            <h2 className="mb-4 text-center text-xl font-bold text-black">
+              Vista previa del comprobante
+            </h2>
+
+            <ComprobantePreview venta={ventaEmitida} />
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setMostrarModalImpresion(false)}
+                className="rounded-lg border border-black px-5 py-3 text-black"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="rounded-lg bg-black px-5 py-3 text-white"
+              >
+                Imprimir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

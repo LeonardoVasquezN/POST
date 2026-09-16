@@ -32,6 +32,20 @@ export async function POST(request: Request) {
       );
     }
 
+     if (dni && !/^\d{8}$/.test(dni)) {
+      return Response.json(
+        { error: "El DNI debe tener exactamente 8 dígitos" },
+        { status: 400 }
+      );
+    }
+
+    if (ruc && !/^\d{11}$/.test(ruc)) {
+      return Response.json(
+        { error: "El RUC debe tener exactamente 11 dígitos" },
+        { status: 400 }
+      );
+    }
+
     const cliente = await prisma.cliente.create({
       data: {
         nombre: nombre.trim(),
