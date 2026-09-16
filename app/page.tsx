@@ -1,35 +1,17 @@
-import Link from "next/link";
-
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-3xl font-bold text-gray-600">Mi tienda</h1>
+    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-6 text-center">
+      <div className="flex flex-col items-center justify-center tracking-tight">
+        {/* Título Principal */}
+        <h1 className="flex flex-col text-6xl sm:text-7xl md:text-8xl font-semibold text-zinc-400 leading-none space-y-2">
+          <span>Facturación</span>
+          <span>Electrónica</span>
+        </h1>
 
-      <p className="mt-2 text-white-600 ">
-        ¿Qué deseas hacer?
-      </p>
-
-      <div className="mt-8 flex w-full max-w-md flex-col gap-4">
-        <Link
-          href="/ventas"
-          className="rounded-lg border px-6 py-4 text-center text-lg font-semibold"
-        >
-          Nueva venta
-        </Link>
-
-        <Link
-          href="/productos"
-          className="rounded-lg border px-6 py-4 text-center text-lg font-semibold"
-        >
-          Productos
-        </Link>
-
-        <Link
-          href="/historial"
-          className="rounded-lg border px-6 py-4 text-center text-lg font-semibold"
-        >
-          Historial
-        </Link>
+        {/* Subtítulo Azul */}
+        <p className="mt-8 text-xl sm:text-2xl font-normal text-sky-500 tracking-widest uppercase">
+          Empieza hoy mismo
+        </p>
       </div>
     </main>
   );
