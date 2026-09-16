@@ -111,7 +111,7 @@ export default function ProductosPage() {
 
         <button
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="rounded-lg bg-black px-4 py-2 text-white"
+          className="rounded-lg bg-black px-4 py-2 text-white border border-white"
         >
           <h2 className="text-lg font-semibold">
             {productoEditando ? "Editar producto" : "Nuevo producto"}
@@ -164,7 +164,7 @@ export default function ProductosPage() {
                 onClick={() => {
                   guardarProducto();
                 }}
-                className="rounded-lg bg-black px-4 py-2 text-white"
+                className="rounded-lg bg-black px-4 py-2 text-white border border-white"
               >
                 {productoEditando ? "Actualizar" : "Guardar"}
               </button>
