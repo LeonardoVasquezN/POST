@@ -17,11 +17,12 @@ export default function VentasPage() {
           Nota de venta
         </Link>
 
-        <button
-          className="rounded-lg border px-6 py-4 text-lg font-semibold"
+        <Link
+          href="/ventas/boleta"
+          className="flex items-center justify-center rounded-lg border px-6 py-4 text-lg font-semibold"
         >
-          Boleta electrónica
-        </button>
+          Boleta Electrónica
+        </Link>
 
         <button
           className="rounded-lg border px-6 py-4 text-lg font-semibold"
