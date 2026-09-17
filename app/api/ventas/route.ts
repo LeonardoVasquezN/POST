@@ -1,5 +1,33 @@
 import { prisma } from "@/lib/prisma";
 
+export async function GET() {
+  try {
+    const ventas = await prisma.venta.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        cliente: true,
+        documento: true,
+        detalles: {
+          include: {
+            producto: true,
+          },
+        },
+      },
+    });
+
+    return Response.json(ventas);
+  } catch (error) {
+    console.error(error);
+
+    return Response.json(
+      { error: "Error al obtener las ventas" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
