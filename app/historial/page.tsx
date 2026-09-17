@@ -1,7 +1,8 @@
 "use client";
+import Historial from "../components/historial";
 
-export default function historialPage() {
+export default function HistorialPage() {
   return(
-    <h1>welcome historial</h1>
+    <Historial />
   )
 }
