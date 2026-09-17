@@ -50,6 +50,9 @@ export default function NotaVenta() {
   const [ventaEmitida, setVentaEmitida] = useState<any>(null);
   const [mostrarModalImpresion, setMostrarModalImpresion] = useState(false);
 
+  const [procesandoVenta, setProcesandoVenta] = useState(false);
+  const [ventaRegistrada, setVentaRegistrada] = useState(false);
+
   useEffect(() => {
     async function cargarDatos() {
       const responseProductos = await fetch("/api/productos");
@@ -117,13 +120,14 @@ export default function NotaVenta() {
   }
 
   async function validarVenta() {
+    if (procesandoVenta) return;
 
     if (!clienteSeleccionado) {
       alert("Debes seleccionar un cliente");
       return;
     }
 
-    if(productos.length === 0) {
+    if (productos.length === 0) {
       alert("Debes agregar al menos un producto");
       return;
     }
@@ -169,39 +173,61 @@ export default function NotaVenta() {
       }
     }
 
-    const venta = {
-      clienteId: clienteSeleccionado.id,
-      metodoPago,
-      montoRecibido:
-        metodoPago === "EFECTIVO"
-          ? Number(montoRecibido)
-          : null,
-      detalles: productos.map((producto) => ({
-        productoId: producto.id,
-        cantidad: Number(producto.cantidad),
-        precioUnitario: Number(producto.precio),
-      })),
-    };
+    setProcesandoVenta(true);
 
-    const response = await fetch("/api/ventas", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(venta),
-    });
+    try {
+      const venta = {
+        clienteId: clienteSeleccionado.id,
+        metodoPago,
+        montoRecibido:
+          metodoPago === "EFECTIVO"
+            ? Number(montoRecibido)
+            : null,
+        detalles: productos.map((producto) => ({
+          productoId: producto.id,
+          cantidad: Number(producto.cantidad),
+          precioUnitario: Number(producto.precio),
+        })),
+      };
 
-    const data = await response.json();
+      const response = await fetch("/api/ventas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(venta),
+      });
 
-    if (!response.ok) {
-      alert(data.error);
-      return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error);
+        return;
+      }
+
+      setVentaEmitida(data);
+      setVentaRegistrada(true);
+      setMostrarModalImpresion(true);
+
+      console.log("RESPUESTA:", data);
+    } catch (error) {
+      console.error(error);
+      alert("Ocurrió un error al registrar la venta");
+    } finally {
+      setProcesandoVenta(false);
     }
+  }
 
-    setVentaEmitida(data);
-    setMostrarModalImpresion(true);
-
-    console.log("RESPUESTA:", data);
+  function limpiarVenta() {
+    setProductos([]);
+    setBusquedaProducto("");
+    setClienteSeleccionado(null);
+    setBusquedaCliente("");
+    setMetodoPago("");
+    setMontoRecibido("");
+    setVentaEmitida(null);
+    setMostrarModalImpresion(false);
+    setVentaRegistrada(false);
   }
 
   const productosFiltrados = productosDisponibles.filter((producto) =>
@@ -478,27 +504,34 @@ export default function NotaVenta() {
         <div className="mt-8 flex justify-end">
           <button
             type="button"
-            className="rounded-lg bg-black px-8 py-4 text-lg font-semibold text-white border border-white"
+            className="rounded-lg border border-white bg-black px-8 py-4 text-lg font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
             onClick={validarVenta}
+            disabled={procesandoVenta}
           >
-            Emitir Comprobante
+            {procesandoVenta ? "Registrando..." : "Emitir Comprobante"}
           </button>
         </div>
       </div>
 
       {mostrarModalImpresion && ventaEmitida && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div className="modal-impresion fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="max-h-[90vh] overflow-auto rounded-lg bg-neutral-100 p-6 shadow-xl">
             <h2 className="mb-4 text-center text-xl font-bold text-black">
               Vista previa del comprobante
             </h2>
 
+            {ventaRegistrada && (
+              <p className="mb-4 text-center font-semibold text-green-700">
+                ✓ Venta registrada correctamente
+              </p>
+            )}
+
             <ComprobantePreview venta={ventaEmitida} />
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="botones-impresion mt-6 flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setMostrarModalImpresion(false)}
+                onClick={limpiarVenta}
                 className="rounded-lg border border-black px-5 py-3 text-black"
               >
                 Cancelar

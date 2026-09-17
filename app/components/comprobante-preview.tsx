@@ -11,7 +11,7 @@ export default function ComprobantePreview({
   return (
     <div
       id="comprobante"
-      className="mx-auto w-[80mm] bg-white p-4 text-black"
+      className="mx-auto w-[80mm] bg-white px-6 py-4 text-black"
     >
       <div className="text-center">
         <h2 className="text-xl font-bold">
