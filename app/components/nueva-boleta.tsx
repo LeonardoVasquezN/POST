@@ -54,6 +54,18 @@ export default function BoletaVenta() {
   const [procesandoVenta, setProcesandoVenta] = useState(false);
   const [ventaRegistrada, setVentaRegistrada] = useState(false);
 
+  const [mostrarModalCliente, setMostrarModalCliente] = useState(false);
+  const [nuevoClienteNombre, setNuevoClienteNombre] = useState("");
+  const [nuevoClienteDni, setNuevoClienteDni] = useState("");
+  const [nuevoClienteRuc, setNuevoClienteRuc] = useState("");
+  const [nuevoClienteDireccion, setNuevoClienteDireccion] = useState("");
+  const [registrandoCliente, setRegistrandoCliente] = useState(false);
+
+  const [mostrarModalProducto, setMostrarModalProducto] = useState(false);
+  const [nuevoProductoNombre, setNuevoProductoNombre] = useState("");
+  const [nuevoProductoPrecio, setNuevoProductoPrecio] = useState("");
+  const [registrandoProducto, setRegistrandoProducto] = useState(false);
+
   useEffect(() => {
     async function cargarDatos() {
       const responseProductos = await fetch("/api/productos");
@@ -221,6 +233,125 @@ export default function BoletaVenta() {
     }
   }
 
+  async function registrarCliente() {
+    if (registrandoCliente) return;
+
+    if (!nuevoClienteNombre.trim()) {
+      alert("Debes ingresar el nombre o razón social");
+      return;
+    }
+
+    setRegistrandoCliente(true);
+
+    try {
+      const response = await fetch("/api/clientes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: nuevoClienteNombre.trim(),
+          dni: nuevoClienteDni.trim() || null,
+          ruc: nuevoClienteRuc.trim() || null,
+          direccion: nuevoClienteDireccion.trim() || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "No se pudo registrar el cliente");
+        return;
+      }
+
+      setClientes((clientesActuales) => [
+        ...clientesActuales,
+        data,
+      ]);
+
+      setClienteSeleccionado(data);
+      setBusquedaCliente("");
+
+      setNuevoClienteNombre("");
+      setNuevoClienteDni("");
+      setNuevoClienteRuc("");
+      setNuevoClienteDireccion("");
+
+      setMostrarModalCliente(false);
+    } catch (error) {
+      console.error(error);
+      alert("Ocurrió un error al registrar el cliente");
+    } finally {
+      setRegistrandoCliente(false);
+    }
+  }
+
+  async function registrarProducto() {
+    if (registrandoProducto) return;
+
+    const nombre = nuevoProductoNombre.trim();
+    const precio = Number(nuevoProductoPrecio);
+
+    if (!nombre) {
+      alert("Debes ingresar el nombre del producto");
+      return;
+    }
+
+    if (
+      nuevoProductoPrecio === "" ||
+      !Number.isFinite(precio) ||
+      precio < 0
+    ) {
+      alert("Debes ingresar un precio válido");
+      return;
+    }
+
+    setRegistrandoProducto(true);
+
+    try {
+      const response = await fetch("/api/productos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre,
+          precioBase: precio,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "No se pudo registrar el producto");
+        return;
+      }
+
+      const productoNuevo: Producto = {
+        id: data.id,
+        nombre: data.nombre,
+        precioBase: String(data.precioBase),
+        activo: data.activo,
+      };
+
+      setProductosDisponibles((productosActuales) => [
+        ...productosActuales,
+        productoNuevo,
+      ]);
+
+      agregarProducto(productoNuevo);
+
+      setNuevoProductoNombre("");
+      setNuevoProductoPrecio("");
+      setMostrarModalProducto(false);
+    } catch (error) {
+      console.error(error);
+      alert("Ocurrió un error al registrar el producto");
+    } finally {
+      setRegistrandoProducto(false);
+    }
+  }
+
   function limpiarVenta() {
     setProductos([]);
     setBusquedaProducto("");
@@ -252,7 +383,6 @@ export default function BoletaVenta() {
           Nueva boleta electrónica
         </h1>
 
-        {/* Cliente */}
         <section className="mt-8 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">Cliente</h2>
 
@@ -273,12 +403,13 @@ export default function BoletaVenta() {
                 placeholder="Buscar cliente por nombre, DNI o RUC..."
               />
 
-              <Link
-                href="/clientes"
+              <button
+                type="button"
+                onClick={() => setMostrarModalCliente(true)}
                 className="whitespace-nowrap rounded-lg border px-5 py-3"
               >
                 Nuevo cliente
-              </Link>
+              </button>
             </div>
 
             {busquedaCliente && clientesFiltrados.length > 0 && (
@@ -313,7 +444,6 @@ export default function BoletaVenta() {
           </div>
         </section>
 
-        {/* Productos */}
         <section className="mt-6 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">Productos</h2>
 
@@ -327,12 +457,13 @@ export default function BoletaVenta() {
                 placeholder="Buscar producto..."
               />
 
-              <Link
-                href="/productos"
+              <button
+                type="button"
+                onClick={() => setMostrarModalProducto(true)}
                 className="whitespace-nowrap rounded-lg border px-5 py-3"
               >
                 Nuevo producto
-              </Link>
+              </button>
             </div>
 
             {busquedaProducto && productosFiltrados.length > 0 && (
@@ -532,6 +663,171 @@ export default function BoletaVenta() {
           </button>
         </div>
       </div>
+
+      {/* Modal nuevo cliente */}
+      {mostrarModalCliente && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-black">
+              Nuevo cliente
+            </h2>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Nombre / Razón Social
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoClienteNombre}
+                  onChange={(e) =>
+                    setNuevoClienteNombre(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Nombre o razón social"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  DNI
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoClienteDni}
+                  onChange={(e) =>
+                    setNuevoClienteDni(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="DNI"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  RUC
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoClienteRuc}
+                  onChange={(e) =>
+                    setNuevoClienteRuc(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="RUC"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Dirección
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoClienteDireccion}
+                  onChange={(e) =>
+                    setNuevoClienteDireccion(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Dirección"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setMostrarModalCliente(false)}
+                className="rounded-lg border border-black px-5 py-3 text-black"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={registrarCliente}
+                disabled={registrandoCliente}
+                className="rounded-lg bg-black px-5 py-3 text-white disabled:opacity-50"
+              >
+                {registrandoCliente
+                  ? "Registrando..."
+                  : "Registrar cliente"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mostrarModalProducto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-black">
+              Nuevo producto
+            </h2>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Nombre
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoProductoNombre}
+                  onChange={(e) =>
+                    setNuevoProductoNombre(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Nombre del producto"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Precio base
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={nuevoProductoPrecio}
+                  onChange={(e) =>
+                    setNuevoProductoPrecio(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setMostrarModalProducto(false)}
+                className="rounded-lg border border-black px-5 py-3 text-black"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={registrarProducto}
+                disabled={registrandoProducto}
+                className="rounded-lg bg-black px-5 py-3 text-white disabled:opacity-50"
+              >
+                {registrandoProducto
+                  ? "Registrando..."
+                  : "Registrar producto"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {mostrarModalImpresion && ventaEmitida && (
