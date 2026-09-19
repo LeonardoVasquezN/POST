@@ -18,8 +18,16 @@ export default function ComprobantePreview({
           CAPRICHOS SHOP
         </h2>
 
+        {/* PARA QUE DEPENDIENDO DE QUE COMPROBANTE SE IMPRIMA SALGA EL NOMBRE */}
+
         <p className="mt-2 font-bold">
-          NOTA DE VENTA
+          {documento.tipo === "NOTA"
+            ? "NOTA DE VENTA"
+            : documento.tipo === "BOLETA"
+            ? "BOLETA ELECTRÓNICA"
+            : documento.tipo === "FACTURA"
+            ? "FACTURA ELECTRÓNICA"
+            : ""}
         </p>
 
         <p className="font-bold">

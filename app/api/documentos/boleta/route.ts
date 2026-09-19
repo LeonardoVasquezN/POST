@@ -218,10 +218,10 @@ export async function POST(request: Request) {
       moneda: "PEN",
       tipo_operacion: "0101",
 
-      cliente_tipo_de_documento: "1",
-      cliente_numero_de_documento: "99999999",
-      cliente_denominacion: "CLIENTE VARIOS",
-      cliente_direccion: "-",
+      cliente_tipo_de_documento: resultado.cliente?.ruc ? "6" : "1",
+      cliente_numero_de_documento: resultado.cliente?.ruc ?? resultado.cliente?.dni ?? "99999999",
+      cliente_denominacion: resultado.cliente?.nombre ?? "CLIENTE VARIOS",
+      cliente_direccion: resultado.cliente?.direccion ?? "-",
 
       items,
 
