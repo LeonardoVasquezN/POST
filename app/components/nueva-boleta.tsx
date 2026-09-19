@@ -54,6 +54,18 @@ export default function BoletaVenta() {
   const [procesandoVenta, setProcesandoVenta] = useState(false);
   const [ventaRegistrada, setVentaRegistrada] = useState(false);
 
+  const [mostrarModalCliente, setMostrarModalCliente] = useState(false);
+  const [nuevoClienteNombre, setNuevoClienteNombre] = useState("");
+  const [nuevoClienteTipoDocumento, setNuevoClienteTipoDocumento] = useState<"DNI" | "RUC">("DNI");
+  const [nuevoClienteNumeroDocumento, setNuevoClienteNumeroDocumento] = useState("");
+  const [nuevoClienteDireccion, setNuevoClienteDireccion] = useState("");
+  const [registrandoCliente, setRegistrandoCliente] = useState(false);
+
+  const [mostrarModalProducto, setMostrarModalProducto] = useState(false);
+  const [nuevoProductoNombre, setNuevoProductoNombre] = useState("");
+  const [nuevoProductoPrecio, setNuevoProductoPrecio] = useState("");
+  const [registrandoProducto, setRegistrandoProducto] = useState(false);
+
   useEffect(() => {
     async function cargarDatos() {
       const responseProductos = await fetch("/api/productos");
@@ -125,6 +137,16 @@ export default function BoletaVenta() {
 
     if (!clienteSeleccionado) {
       alert("Debes seleccionar un cliente");
+      return;
+    }
+
+    if (
+      total >= 700 &&
+      clienteSeleccionado.nombre === "CLIENTE_VARIOS"
+    ) {
+      alert(
+        "El monto de la venta es igual o mayor a S/700. No se puede emitir la boleta con CLIENTE VARIOS. Debes seleccionar un cliente con DNI o RUC."
+      );
       return;
     }
 
@@ -218,6 +240,139 @@ export default function BoletaVenta() {
       alert("Ocurrió un error al emitir la boleta");
     } finally {
       setProcesandoVenta(false);
+    }
+  }
+
+  async function registrarCliente() {
+    if (registrandoCliente) return;
+
+    if (!nuevoClienteNombre.trim()) {
+      alert("Debes ingresar el nombre o razón social");
+      return;
+    }
+
+    if (!nuevoClienteNumeroDocumento.trim()) {
+      alert(`Debes ingresar el ${nuevoClienteTipoDocumento}`);
+      return;
+    }
+
+    setRegistrandoCliente(true);
+
+    try {
+      const response = await fetch("/api/clientes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: nuevoClienteNombre.trim(),
+
+          dni:
+            nuevoClienteTipoDocumento === "DNI"
+              ? nuevoClienteNumeroDocumento.trim()
+              : null,
+
+          ruc:
+            nuevoClienteTipoDocumento === "RUC"
+              ? nuevoClienteNumeroDocumento.trim()
+              : null,
+
+          direccion: nuevoClienteDireccion.trim() || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "No se pudo registrar el cliente");
+        return;
+      }
+
+      setClientes((clientesActuales) => [
+        ...clientesActuales,
+        data,
+      ]);
+
+      setClienteSeleccionado(data);
+      setBusquedaCliente("");
+
+      setNuevoClienteNombre("");
+      setNuevoClienteTipoDocumento("DNI");
+      setNuevoClienteNumeroDocumento("");
+      setNuevoClienteDireccion("");
+
+      setMostrarModalCliente(false);
+    } catch (error) {
+      console.error(error);
+      alert("Ocurrió un error al registrar el cliente");
+    } finally {
+      setRegistrandoCliente(false);
+    }
+  }
+
+  async function registrarProducto() {
+    if (registrandoProducto) return;
+
+    const nombre = nuevoProductoNombre.trim();
+    const precio = Number(nuevoProductoPrecio);
+
+    if (!nombre) {
+      alert("Debes ingresar el nombre del producto");
+      return;
+    }
+
+    if (
+      nuevoProductoPrecio === "" ||
+      !Number.isFinite(precio) ||
+      precio < 0
+    ) {
+      alert("Debes ingresar un precio válido");
+      return;
+    }
+
+    setRegistrandoProducto(true);
+
+    try {
+      const response = await fetch("/api/productos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre,
+          precioBase: precio,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "No se pudo registrar el producto");
+        return;
+      }
+
+      const productoNuevo: Producto = {
+        id: data.id,
+        nombre: data.nombre,
+        precioBase: String(data.precioBase),
+        activo: data.activo,
+      };
+
+      setProductosDisponibles((productosActuales) => [
+        ...productosActuales,
+        productoNuevo,
+      ]);
+
+      agregarProducto(productoNuevo);
+
+      setNuevoProductoNombre("");
+      setNuevoProductoPrecio("");
+      setMostrarModalProducto(false);
+    } catch (error) {
+      console.error(error);
+      alert("Ocurrió un error al registrar el producto");
+    } finally {
+      setRegistrandoProducto(false);
     }
   }
 
@@ -533,6 +688,173 @@ export default function BoletaVenta() {
         </div>
       </div>
 
+      {/* Modal nuevo cliente */}
+      {mostrarModalCliente && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-black">
+              Nuevo cliente
+            </h2>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Nombre / Razón Social
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoClienteNombre}
+                  onChange={(e) =>
+                    setNuevoClienteNombre(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Nombre o razón social"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Tipo de documento
+                </label>
+
+                <select
+                  value={nuevoClienteTipoDocumento}
+                  onChange={(e) =>
+                    setNuevoClienteTipoDocumento(
+                      e.target.value as "DNI" | "RUC"
+                    )
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                >
+                  <option value="DNI">DNI</option>
+                  <option value="RUC">RUC</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  {nuevoClienteTipoDocumento}
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoClienteNumeroDocumento}
+                  onChange={(e) =>
+                    setNuevoClienteNumeroDocumento(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder={`Ingrese ${nuevoClienteTipoDocumento}`}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Dirección
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoClienteDireccion}
+                  onChange={(e) =>
+                    setNuevoClienteDireccion(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Dirección"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setMostrarModalCliente(false)}
+                className="rounded-lg border border-black px-5 py-3 text-black"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={registrarCliente}
+                disabled={registrandoCliente}
+                className="rounded-lg bg-black px-5 py-3 text-white disabled:opacity-50"
+              >
+                {registrandoCliente
+                  ? "Registrando..."
+                  : "Registrar cliente"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mostrarModalProducto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-black">
+              Nuevo producto
+            </h2>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Nombre
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoProductoNombre}
+                  onChange={(e) =>
+                    setNuevoProductoNombre(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Nombre del producto"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Precio base
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={nuevoProductoPrecio}
+                  onChange={(e) =>
+                    setNuevoProductoPrecio(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setMostrarModalProducto(false)}
+                className="rounded-lg border border-black px-5 py-3 text-black"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={registrarProducto}
+                disabled={registrandoProducto}
+                className="rounded-lg bg-black px-5 py-3 text-white disabled:opacity-50"
+              >
+                {registrandoProducto
+                  ? "Registrando..."
+                  : "Registrar producto"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Modal */}
       {mostrarModalImpresion && ventaEmitida && (
         <div className="modal-impresion fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">

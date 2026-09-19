@@ -57,7 +57,8 @@ export async function POST(request: Request) {
 
     return Response.json(cliente, { status: 201 });
   } catch (error) {
-    console.error(error);
+    console.error("ERROR REGISTRANDO CLIENTE:", error);
+    alert("Ocurrió un error al registrar el cliente");
 
     return Response.json(
       { error: "Error al crear cliente" },
