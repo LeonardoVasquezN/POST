@@ -28,6 +28,8 @@ export async function POST(request: Request) {
       );
     }
 
+    let cliente = null;
+
     if (clienteId !== undefined && clienteId !== null) {
       if (!Number.isInteger(Number(clienteId)) || Number(clienteId) <= 0) {
         return Response.json(
@@ -36,7 +38,7 @@ export async function POST(request: Request) {
         );
       }
 
-      const cliente = await prisma.cliente.findUnique({
+      cliente = await prisma.cliente.findUnique({
         where: {
           id: Number(clienteId),
         },
@@ -108,6 +110,23 @@ export async function POST(request: Request) {
       },
       0
     );
+
+    if (
+      total >= 700 &&
+      (
+        !cliente ||
+        cliente.nombre === "CLIENTE_VARIOS" ||
+        (!cliente.dni && !cliente.ruc)
+      )
+    ) {
+      return Response.json(
+        {
+          error:
+            "El monto de la boleta es igual o mayor a S/700. Debes seleccionar un cliente con DNI o RUC.",
+        },
+        { status: 400 }
+      );
+    }
 
     if (metodoPago === "EFECTIVO") {
       const recibido = Number(montoRecibido);
@@ -210,6 +229,8 @@ export async function POST(request: Request) {
       };
     });
 
+    const esClienteVarios = resultado.cliente?.nombre === "CLIENTE_VARIOS";
+
     const payloadLuCode = {
       documento: "boleta",
       serie: documento.serie,
@@ -218,9 +239,22 @@ export async function POST(request: Request) {
       moneda: "PEN",
       tipo_operacion: "0101",
 
-      cliente_tipo_de_documento: resultado.cliente?.ruc ? "6" : "1",
-      cliente_numero_de_documento: resultado.cliente?.ruc ?? resultado.cliente?.dni ?? "99999999",
-      cliente_denominacion: resultado.cliente?.nombre ?? "CLIENTE VARIOS",
+      cliente_tipo_de_documento: esClienteVarios
+        ? "1"
+        : resultado.cliente?.ruc
+          ? "6"
+          : "1",
+
+      cliente_numero_de_documento: esClienteVarios
+        ? "99999999"
+        : resultado.cliente?.ruc ??
+          resultado.cliente?.dni ??
+          "99999999",
+
+      cliente_denominacion: esClienteVarios
+        ? "CLIENTE VARIOS"
+        : resultado.cliente?.nombre ?? "CLIENTE VARIOS",
+
       cliente_direccion: resultado.cliente?.direccion ?? "-",
 
       items,
@@ -240,7 +274,11 @@ export async function POST(request: Request) {
       }
     );
 
+    console.log("PAYLOAD LUCODE:", payloadLuCode);
+
     const resultadoLuCode = await respuestaLuCode.json();
+
+    console.log("RESPUESTA LUCODE:", resultadoLuCode);
 
     const aceptado =
       respuestaLuCode.ok &&

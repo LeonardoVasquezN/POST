@@ -56,8 +56,8 @@ export default function BoletaVenta() {
 
   const [mostrarModalCliente, setMostrarModalCliente] = useState(false);
   const [nuevoClienteNombre, setNuevoClienteNombre] = useState("");
-  const [nuevoClienteDni, setNuevoClienteDni] = useState("");
-  const [nuevoClienteRuc, setNuevoClienteRuc] = useState("");
+  const [nuevoClienteTipoDocumento, setNuevoClienteTipoDocumento] = useState<"DNI" | "RUC">("DNI");
+  const [nuevoClienteNumeroDocumento, setNuevoClienteNumeroDocumento] = useState("");
   const [nuevoClienteDireccion, setNuevoClienteDireccion] = useState("");
   const [registrandoCliente, setRegistrandoCliente] = useState(false);
 
@@ -137,6 +137,16 @@ export default function BoletaVenta() {
 
     if (!clienteSeleccionado) {
       alert("Debes seleccionar un cliente");
+      return;
+    }
+
+    if (
+      total >= 700 &&
+      clienteSeleccionado.nombre === "CLIENTE_VARIOS"
+    ) {
+      alert(
+        "El monto de la venta es igual o mayor a S/700. No se puede emitir la boleta con CLIENTE VARIOS. Debes seleccionar un cliente con DNI o RUC."
+      );
       return;
     }
 
@@ -241,6 +251,11 @@ export default function BoletaVenta() {
       return;
     }
 
+    if (!nuevoClienteNumeroDocumento.trim()) {
+      alert(`Debes ingresar el ${nuevoClienteTipoDocumento}`);
+      return;
+    }
+
     setRegistrandoCliente(true);
 
     try {
@@ -251,8 +266,17 @@ export default function BoletaVenta() {
         },
         body: JSON.stringify({
           nombre: nuevoClienteNombre.trim(),
-          dni: nuevoClienteDni.trim() || null,
-          ruc: nuevoClienteRuc.trim() || null,
+
+          dni:
+            nuevoClienteTipoDocumento === "DNI"
+              ? nuevoClienteNumeroDocumento.trim()
+              : null,
+
+          ruc:
+            nuevoClienteTipoDocumento === "RUC"
+              ? nuevoClienteNumeroDocumento.trim()
+              : null,
+
           direccion: nuevoClienteDireccion.trim() || null,
         }),
       });
@@ -273,8 +297,8 @@ export default function BoletaVenta() {
       setBusquedaCliente("");
 
       setNuevoClienteNombre("");
-      setNuevoClienteDni("");
-      setNuevoClienteRuc("");
+      setNuevoClienteTipoDocumento("DNI");
+      setNuevoClienteNumeroDocumento("");
       setNuevoClienteDireccion("");
 
       setMostrarModalCliente(false);
@@ -676,7 +700,7 @@ export default function BoletaVenta() {
               <div>
                 <label className="block text-sm font-medium text-black">
                   Nombre / Razón Social
-                </label>
+                </label>re
 
                 <input
                   type="text"
@@ -691,33 +715,36 @@ export default function BoletaVenta() {
 
               <div>
                 <label className="block text-sm font-medium text-black">
-                  DNI
+                  Tipo de documento
                 </label>
 
-                <input
-                  type="text"
-                  value={nuevoClienteDni}
+                <select
+                  value={nuevoClienteTipoDocumento}
                   onChange={(e) =>
-                    setNuevoClienteDni(e.target.value)
+                    setNuevoClienteTipoDocumento(
+                      e.target.value as "DNI" | "RUC"
+                    )
                   }
                   className="mt-1 w-full rounded-lg border p-3 text-black"
-                  placeholder="DNI"
-                />
+                >
+                  <option value="DNI">DNI</option>
+                  <option value="RUC">RUC</option>
+                </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black">
-                  RUC
+                  {nuevoClienteTipoDocumento}
                 </label>
 
                 <input
                   type="text"
-                  value={nuevoClienteRuc}
+                  value={nuevoClienteNumeroDocumento}
                   onChange={(e) =>
-                    setNuevoClienteRuc(e.target.value)
+                    setNuevoClienteNumeroDocumento(e.target.value)
                   }
                   className="mt-1 w-full rounded-lg border p-3 text-black"
-                  placeholder="RUC"
+                  placeholder={`Ingrese ${nuevoClienteTipoDocumento}`}
                 />
               </div>
 
