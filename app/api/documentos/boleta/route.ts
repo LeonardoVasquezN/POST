@@ -111,6 +111,11 @@ export async function POST(request: Request) {
       0
     );
 
+    const valorVenta = total;
+    const igv = valorVenta * 0.18;
+    const descuentoGeneral = 0;
+    const totalConIgv = valorVenta + igv - descuentoGeneral;
+
     if (
       total >= 700 &&
       (
@@ -131,7 +136,7 @@ export async function POST(request: Request) {
     if (metodoPago === "EFECTIVO") {
       const recibido = Number(montoRecibido);
 
-      if (!Number.isFinite(recibido) || recibido < total) {
+      if (!Number.isFinite(recibido) || recibido < totalConIgv) {
         return Response.json(
           { error: "El monto recibido no es suficiente" },
           { status: 400 }
@@ -169,10 +174,10 @@ export async function POST(request: Request) {
 
           vuelto:
             metodoPago === "EFECTIVO"
-              ? Number(montoRecibido) - total
+              ? Number(montoRecibido) - totalConIgv
               : null,
 
-          total,
+          total: totalConIgv,
           estado: "COMPLETADA",
 
           detalles: {
@@ -215,8 +220,7 @@ export async function POST(request: Request) {
 
     const items = resultado.detalles.map((detalle) => {
       const precioFinal = Number(detalle.precioUnitario);
-
-      const valorUnitario = precioFinal / 1.18;
+      const valorUnitario = precioFinal;
 
       return {
         unidad_de_medida: "NIU",
@@ -263,7 +267,7 @@ export async function POST(request: Request) {
 
       items,
 
-      total: total.toFixed(2),
+      total: totalConIgv.toFixed(2),
     };
 
     const respuestaLuCode = await fetch(
