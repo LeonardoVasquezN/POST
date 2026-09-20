@@ -231,11 +231,15 @@ export async function POST(request: Request) {
 
     const esClienteVarios = resultado.cliente?.nombre === "CLIENTE_VARIOS";
 
+    const fechaHoy = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Lima",
+    }).format(new Date());
+
     const payloadLuCode = {
       documento: "boleta",
       serie: documento.serie,
       numero: documento.numero,
-      fecha_de_emision: new Date().toISOString().split("T")[0],
+      fecha_de_emision: fechaHoy,
       moneda: "PEN",
       tipo_operacion: "0101",
 
