@@ -251,11 +251,14 @@ export default function BoletaVenta() {
       return;
     }
 
+<<<<<<< HEAD
     if (!nuevoClienteNumeroDocumento.trim()) {
       alert(`Debes ingresar el ${nuevoClienteTipoDocumento}`);
       return;
     }
 
+=======
+>>>>>>> origin/main
     setRegistrandoCliente(true);
 
     try {
@@ -266,6 +269,7 @@ export default function BoletaVenta() {
         },
         body: JSON.stringify({
           nombre: nuevoClienteNombre.trim(),
+<<<<<<< HEAD
 
           dni:
             nuevoClienteTipoDocumento === "DNI"
@@ -277,6 +281,10 @@ export default function BoletaVenta() {
               ? nuevoClienteNumeroDocumento.trim()
               : null,
 
+=======
+          dni: nuevoClienteDni.trim() || null,
+          ruc: nuevoClienteRuc.trim() || null,
+>>>>>>> origin/main
           direccion: nuevoClienteDireccion.trim() || null,
         }),
       });
@@ -297,8 +305,13 @@ export default function BoletaVenta() {
       setBusquedaCliente("");
 
       setNuevoClienteNombre("");
+<<<<<<< HEAD
       setNuevoClienteTipoDocumento("DNI");
       setNuevoClienteNumeroDocumento("");
+=======
+      setNuevoClienteDni("");
+      setNuevoClienteRuc("");
+>>>>>>> origin/main
       setNuevoClienteDireccion("");
 
       setMostrarModalCliente(false);
@@ -407,7 +420,6 @@ export default function BoletaVenta() {
           Nueva boleta electrónica
         </h1>
 
-        {/* Cliente */}
         <section className="mt-8 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">Cliente</h2>
 
@@ -428,12 +440,13 @@ export default function BoletaVenta() {
                 placeholder="Buscar cliente por nombre, DNI o RUC..."
               />
 
-              <Link
-                href="/clientes"
+              <button
+                type="button"
+                onClick={() => setMostrarModalCliente(true)}
                 className="whitespace-nowrap rounded-lg border px-5 py-3"
               >
                 Nuevo cliente
-              </Link>
+              </button>
             </div>
 
             {busquedaCliente && clientesFiltrados.length > 0 && (
@@ -468,7 +481,6 @@ export default function BoletaVenta() {
           </div>
         </section>
 
-        {/* Productos */}
         <section className="mt-6 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">Productos</h2>
 
@@ -482,12 +494,13 @@ export default function BoletaVenta() {
                 placeholder="Buscar producto..."
               />
 
-              <Link
-                href="/productos"
+              <button
+                type="button"
+                onClick={() => setMostrarModalProducto(true)}
                 className="whitespace-nowrap rounded-lg border px-5 py-3"
               >
                 Nuevo producto
-              </Link>
+              </button>
             </div>
 
             {busquedaProducto && productosFiltrados.length > 0 && (
@@ -715,6 +728,7 @@ export default function BoletaVenta() {
 
               <div>
                 <label className="block text-sm font-medium text-black">
+<<<<<<< HEAD
                   Tipo de documento
                 </label>
 
@@ -735,16 +749,44 @@ export default function BoletaVenta() {
               <div>
                 <label className="block text-sm font-medium text-black">
                   {nuevoClienteTipoDocumento}
+=======
+                  DNI
+>>>>>>> origin/main
                 </label>
 
                 <input
                   type="text"
+<<<<<<< HEAD
                   value={nuevoClienteNumeroDocumento}
                   onChange={(e) =>
                     setNuevoClienteNumeroDocumento(e.target.value)
                   }
                   className="mt-1 w-full rounded-lg border p-3 text-black"
                   placeholder={`Ingrese ${nuevoClienteTipoDocumento}`}
+=======
+                  value={nuevoClienteDni}
+                  onChange={(e) =>
+                    setNuevoClienteDni(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="DNI"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  RUC
+                </label>
+
+                <input
+                  type="text"
+                  value={nuevoClienteRuc}
+                  onChange={(e) =>
+                    setNuevoClienteRuc(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="RUC"
+>>>>>>> origin/main
                 />
               </div>
 
@@ -855,6 +897,10 @@ export default function BoletaVenta() {
           </div>
         </div>
       )}
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
       {/* Modal */}
       {mostrarModalImpresion && ventaEmitida && (
         <div className="modal-impresion fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
