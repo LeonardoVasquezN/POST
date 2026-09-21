@@ -24,11 +24,12 @@ export default function VentasPage() {
           Boleta Electrónica
         </Link>
 
-        <button
-          className="rounded-lg border px-6 py-4 text-lg font-semibold"
+        <Link
+          href="/ventas/factura"
+          className="flex items-center justify-center rounded-lg border px-6 py-4 text-lg font-semibold"
         >
-          Factura electrónica
-        </button>
+          Factura Electrónica
+        </Link>
       </div>
     </main>
   );
