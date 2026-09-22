@@ -52,6 +52,8 @@ export default function FacturaVenta() {
   const [nuevoClienteRuc, setNuevoClienteRuc] = useState("");
   const [nuevoClienteDireccion, setNuevoClienteDireccion] = useState("");
 
+  const [consultandoRuc, setConsultandoRuc] = useState(false);
+
   const [registrandoCliente, setRegistrandoCliente] = useState(false);
 
   const [mostrarModalProducto, setMostrarModalProducto] = useState(false);
@@ -265,6 +267,37 @@ export default function FacturaVenta() {
       alert("Ocurrió un error al conectar con la API de factura");
     } finally {
       setProcesandoFactura(false);
+    }
+  }
+
+  async function consultarRuc() {
+    if (consultandoRuc) return;
+
+    const ruc = nuevoClienteRuc.trim();
+
+    if (!/^\d{11}$/.test(ruc)) {
+      alert("El RUC debe tener 11 dígitos");
+      return;
+    }
+
+    setConsultandoRuc(true);
+
+    try {
+      const response = await fetch(`/api/consultas/ruc?ruc=${ruc}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "No se pudo consultar el RUC");
+        return;
+      }
+
+      setNuevoClienteRazonSocial(data.data.razon_social || "");
+      setNuevoClienteDireccion(data.data.direccion_fiscal || "");
+    } catch (error) {
+      console.error(error);
+      alert("Ocurrió un error al consultar el RUC");
+    } finally {
+      setConsultandoRuc(false);
     }
   }
 
@@ -744,6 +777,37 @@ export default function FacturaVenta() {
             <div className="mt-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-black">
+                  RUC *
+                </label>
+
+                <div className="mt-1 flex gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={11}
+                    value={nuevoClienteRuc}
+                    onChange={(e) =>
+                      setNuevoClienteRuc(
+                        e.target.value.replace(/\D/g, "")
+                      )
+                    }
+                    className="w-full rounded-lg border p-3 text-black"
+                    placeholder="RUC de 11 dígitos"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={consultarRuc}
+                    disabled={consultandoRuc}
+                    className="whitespace-nowrap rounded-lg bg-black px-4 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {consultandoRuc ? "Consultando..." : "Consultar RUC"}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
                   Razón social *
                 </label>
 
@@ -757,26 +821,6 @@ export default function FacturaVenta() {
                   }
                   className="mt-1 w-full rounded-lg border p-3 text-black"
                   placeholder="Razón social"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black">
-                  RUC *
-                </label>
-
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={11}
-                  value={nuevoClienteRuc}
-                  onChange={(e) =>
-                    setNuevoClienteRuc(
-                      e.target.value.replace(/\D/g, "")
-                    )
-                  }
-                  className="mt-1 w-full rounded-lg border p-3 text-black"
-                  placeholder="RUC de 11 dígitos"
                 />
               </div>
 
