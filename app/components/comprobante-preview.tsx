@@ -56,7 +56,7 @@ export default function ComprobantePreview({
           {String(documento.numero).padStart(6, "0")}
         </p>
 
-        {esBoleta && documento.fechaEmision && (
+        {(esBoleta || esFactura) && documento.fechaEmision && (
           <p className="mt-2 text-sm">
             <strong>Fecha:</strong>{" "}
             {new Date(
