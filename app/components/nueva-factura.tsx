@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ComprobantePreview from "./comprobante-preview";
 
 type MetodoPago =
   | "EFECTIVO"
@@ -57,6 +58,11 @@ export default function FacturaVenta() {
   const [nuevoProductoNombre, setNuevoProductoNombre] = useState("");
   const [nuevoProductoPrecio, setNuevoProductoPrecio] = useState("");
   const [registrandoProducto, setRegistrandoProducto] = useState(false);
+
+  const [procesandoFactura, setProcesandoFactura] = useState(false);
+
+  const [ventaRegistrada, setVentaRegistrada] = useState<any>(null);
+  const [mostrarModalImpresion, setMostrarModalImpresion] = useState(false);
 
   useEffect(() => {
     async function cargarDatos() {
@@ -136,6 +142,9 @@ export default function FacturaVenta() {
   }
 
   async function validarFactura() {
+
+    if (procesandoFactura) return;
+
     if (!clienteSeleccionado) {
       alert("Debes seleccionar un cliente con RUC");
       return;
@@ -197,6 +206,8 @@ export default function FacturaVenta() {
       }
     }
 
+    setProcesandoFactura(true);
+
     try {
       const response = await fetch("/api/documentos/factura", {
         method: "POST",
@@ -229,11 +240,8 @@ export default function FacturaVenta() {
       }
 
       if (response.status === 201) {
-        alert(
-          `Factura emitida correctamente: ${data.venta?.documento?.serie}-${String(
-            data.venta?.documento?.numero
-          ).padStart(6, "0")}`
-        );
+        setVentaRegistrada(data.venta);
+        setMostrarModalImpresion(true);
 
         console.log("FACTURA EMITIDA:", data);
 
@@ -255,6 +263,8 @@ export default function FacturaVenta() {
     } catch (error) {
       console.error(error);
       alert("Ocurrió un error al conectar con la API de factura");
+    } finally {
+      setProcesandoFactura(false);
     }
   }
 
@@ -714,9 +724,12 @@ export default function FacturaVenta() {
           <button
             type="button"
             onClick={validarFactura}
-            className="rounded-lg border border-white bg-black px-8 py-4 text-lg font-semibold text-white"
+            disabled={procesandoFactura}
+            className="rounded-lg border border-white bg-black px-8 py-4 text-lg font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Emitir Factura
+            {procesandoFactura
+              ? "Procesando..."
+              : "Emitir Factura"}
           </button>
         </div>
       </div>
@@ -875,6 +888,31 @@ export default function FacturaVenta() {
                 {registrandoProducto
                   ? "Registrando..."
                   : "Registrar producto"}
+              </button>
+            </div>
+          </div>        
+        </div>
+      )}
+      {mostrarModalImpresion && ventaRegistrada && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="max-h-[90vh] overflow-y-auto rounded-lg bg-white p-4">
+            <ComprobantePreview venta={ventaRegistrada} />
+
+            <div className="mt-4 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="rounded-lg bg-black px-6 py-3 font-semibold text-white"
+              >
+                Imprimir
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMostrarModalImpresion(false)}
+                className="rounded-lg border border-gray-300 px-6 py-3 font-semibold"
+              >
+                Cerrar
               </button>
             </div>
           </div>
