@@ -147,7 +147,7 @@ export async function POST(request: Request) {
     }
 
     const venta = await prisma.$transaction(async (tx) => {
-      const secuencia = await tx.SecuenciaDocumento.update({
+      const secuencia = await tx.secuenciaDocumento.update({
         where: {
           serie: "NV01",
         },

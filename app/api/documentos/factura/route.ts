@@ -281,6 +281,13 @@ export async function POST(request: Request) {
 
     const documento = resultado.documento;
 
+    if (!documento) {
+      return Response.json(
+        { error: "No se pudo generar el documento asociado" },
+        { status: 500 }
+      );
+    }
+
     const items = resultado.detalles.map(
       (detalle) => {
         const precioFinal = Number(

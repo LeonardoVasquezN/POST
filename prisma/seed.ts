@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.SecuenciaDocumento.upsert({
+  await prisma.secuenciaDocumento.upsert({
     where: {
       serie: "NV01",
     },
