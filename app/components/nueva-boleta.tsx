@@ -66,6 +66,8 @@ export default function BoletaVenta() {
   const [nuevoProductoPrecio, setNuevoProductoPrecio] = useState("");
   const [registrandoProducto, setRegistrandoProducto] = useState(false);
 
+  const [consultandoDocumento, setConsultandoDocumento] = useState(false);
+
   useEffect(() => {
     async function cargarDatos() {
       const responseProductos = await fetch("/api/productos");
@@ -240,6 +242,71 @@ export default function BoletaVenta() {
       alert("Ocurrió un error al emitir la boleta");
     } finally {
       setProcesandoVenta(false);
+    }
+  }
+
+  async function consultarDocumento() {
+    if (consultandoDocumento) return;
+
+    const documento = nuevoClienteNumeroDocumento.trim();
+
+    if (nuevoClienteTipoDocumento === "DNI") {
+      if (!/^\d{8}$/.test(documento)) {
+        alert("El DNI debe tener 8 dígitos");
+        return;
+      }
+    } else {
+      if (!/^\d{11}$/.test(documento)) {
+        alert("El RUC debe tener 11 dígitos");
+        return;
+      }
+    }
+
+    setConsultandoDocumento(true);
+
+    try {
+      const endpoint =
+        nuevoClienteTipoDocumento === "DNI"
+          ? `/api/consultas/dni?dni=${documento}`
+          : `/api/consultas/ruc?ruc=${documento}`;
+
+      const response = await fetch(endpoint);
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(
+          data.message ||
+            `No se pudo consultar el ${nuevoClienteTipoDocumento}`
+        );
+        return;
+      }
+
+      if (nuevoClienteTipoDocumento === "DNI") {
+        const datos = data.data;
+
+        const nombreCompleto = [
+          datos.nombres,
+          datos.apellido_paterno,
+          datos.apellido_materno,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        setNuevoClienteNombre(nombreCompleto);
+        setNuevoClienteDireccion("");
+      } else {
+        const datos = data.data;
+
+        setNuevoClienteNombre(datos.razon_social || "");
+        setNuevoClienteDireccion(datos.direccion_fiscal || "");
+      }
+    } catch (error) {
+      console.error(error);
+      alert(
+        `Ocurrió un error al consultar el ${nuevoClienteTipoDocumento}`
+      );
+    } finally {
+      setConsultandoDocumento(false);
     }
   }
 
@@ -699,32 +766,19 @@ export default function BoletaVenta() {
             <div className="mt-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-black">
-                  Nombre / Razón Social
-                </label>re
-
-                <input
-                  type="text"
-                  value={nuevoClienteNombre}
-                  onChange={(e) =>
-                    setNuevoClienteNombre(e.target.value)
-                  }
-                  className="mt-1 w-full rounded-lg border p-3 text-black"
-                  placeholder="Nombre o razón social"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black">
                   Tipo de documento
                 </label>
 
                 <select
                   value={nuevoClienteTipoDocumento}
-                  onChange={(e) =>
-                    setNuevoClienteTipoDocumento(
-                      e.target.value as "DNI" | "RUC"
-                    )
-                  }
+                  onChange={(e) => {
+                    const tipo = e.target.value as "DNI" | "RUC";
+
+                    setNuevoClienteTipoDocumento(tipo);
+                    setNuevoClienteNumeroDocumento("");
+                    setNuevoClienteNombre("");
+                    setNuevoClienteDireccion("");
+                  }}
                   className="mt-1 w-full rounded-lg border p-3 text-black"
                 >
                   <option value="DNI">DNI</option>
@@ -737,14 +791,53 @@ export default function BoletaVenta() {
                   {nuevoClienteTipoDocumento}
                 </label>
 
+                <div className="mt-1 flex gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={
+                      nuevoClienteTipoDocumento === "DNI" ? 8 : 11
+                    }
+                    value={nuevoClienteNumeroDocumento}
+                    onChange={(e) =>
+                      setNuevoClienteNumeroDocumento(
+                        e.target.value.replace(/\D/g, "")
+                      )
+                    }
+                    className="w-full rounded-lg border p-3 text-black"
+                    placeholder={
+                      nuevoClienteTipoDocumento === "DNI"
+                        ? "DNI de 8 dígitos"
+                        : "RUC de 11 dígitos"
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    onClick={consultarDocumento}
+                    disabled={consultandoDocumento}
+                    className="whitespace-nowrap rounded-lg bg-black px-4 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {consultandoDocumento
+                      ? "Consultando..."
+                      : `Consultar ${nuevoClienteTipoDocumento}`}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Nombre / Razón Social
+                </label>
+
                 <input
                   type="text"
-                  value={nuevoClienteNumeroDocumento}
+                  value={nuevoClienteNombre}
                   onChange={(e) =>
-                    setNuevoClienteNumeroDocumento(e.target.value)
+                    setNuevoClienteNombre(e.target.value)
                   }
                   className="mt-1 w-full rounded-lg border p-3 text-black"
-                  placeholder={`Ingrese ${nuevoClienteTipoDocumento}`}
+                  placeholder="Nombre o razón social"
                 />
               </div>
 
