@@ -13,7 +13,7 @@ export default function ProductosPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
 
-  const [mostrarFormulario, setMostrarFormulario] = useState(false); 
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nombre, setNombre] = useState("");
   const [precioBase, setPrecioBase] = useState("");
   const [textoBusqueda, setTextoBusqueda] = useState("");
@@ -97,127 +97,186 @@ export default function ProductosPage() {
   }
 
   const productosFiltrados = productos.filter((producto) =>
-    producto.nombre.toLowerCase().includes(textoBusqueda.toLowerCase())
+    producto.nombre
+      .toLowerCase()
+      .includes(textoBusqueda.toLowerCase())
   );
 
   if (cargando) {
-    return <p>Cargando productos...</p>;
+    return (
+      <main className="min-h-screen p-8">
+        <div className="mx-auto max-w-6xl">
+          <p className="mt-8">Cargando productos...</p>
+        </div>
+      </main>
+    );
   }
 
   return (
-    <main className="p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Productos</h1>
+    <main className="min-h-screen p-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">
+            Productos
+          </h1>
 
-        <button
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="rounded-lg bg-black px-4 py-2 text-white border border-white"
-        >
-          <h2 className="text-lg font-semibold">
-            {productoEditando ? "Editar producto" : "Nuevo producto"}
-          </h2>
-        </button>
-      </div>
-
-      {mostrarFormulario && (
-        <div className="mt-6 rounded-lg border p-6">
-          <h2 className="text-lg font-semibold">Nuevo producto</h2>
-
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium">
-                Nombre
-              </label>
-
-              <input
-                type="text"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className="mt-1 w-full rounded-lg border p-2"
-                placeholder="Ej. Polo básico"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium">
-                Precio base
-              </label>
-
-              <input
-                type="number"
-                value={precioBase}
-                onChange={(e) => setPrecioBase(e.target.value)}
-                className="mt-1 w-full rounded-lg border p-2"
-                placeholder="Ej. 35"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setMostrarFormulario(false)}
-                className="rounded-lg border px-4 py-2"
-              >
-                Cancelar
-              </button>
-
-              <button
-                onClick={() => {
-                  guardarProducto();
-                }}
-                className="rounded-lg bg-black px-4 py-2 text-white border border-white"
-              >
-                {productoEditando ? "Actualizar" : "Guardar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-6">
-        <input
-          type="text"
-          value={textoBusqueda}
-          onChange={(e) => setTextoBusqueda(e.target.value)}
-          className="w-full rounded-lg border p-2"
-          placeholder="Buscar producto..."
-        />
-      </div>
-
-      <div className="mt-6 space-y-3">
-        {productosFiltrados.map((producto) => (
-          <div
-            key={producto.id}
-            className="flex justify-between rounded-lg border p-4"
+          <button
+            type="button"
+            onClick={() => {
+              setProductoEditando(null);
+              setNombre("");
+              setPrecioBase("");
+              setMostrarFormulario(!mostrarFormulario);
+            }}
+            className="rounded-lg bg-black px-4 py-2 text-white"
           >
-            <span>{producto.nombre}</span>
+            Nuevo producto
+          </button>
+        </div>
 
-            <span>S/ {producto.precioBase}</span>
+        {mostrarFormulario && (
+          <div className="mt-6 rounded-lg border p-6">
+            <h2 className="text-lg font-semibold">
+              {productoEditando
+                ? "Editar producto"
+                : "Nuevo producto"}
+            </h2>
 
-            <button
-              onClick={() => {
-                setProductoEditando(producto);
-                setNombre(producto.nombre);
-                setPrecioBase(producto.precioBase);
-                setMostrarFormulario(true);
-              }}
-              className="rounded-lg border px-3 py-1"
-            >
-              Editar
-            </button>
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium">
+                  Nombre
+                </label>
 
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={producto.activo}
-                onChange={() => cambiarEstadoProducto(producto)}
-              />
+                <input
+                  type="text"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  className="mt-1 w-full rounded-lg border p-2"
+                  placeholder="Ej. Polo básico"
+                />
+              </div>
 
-              <span>
-                {producto.activo ? "Activo" : "Inactivo"}
-              </span>
-            </label>
+              <div>
+                <label className="block text-sm font-medium">
+                  Precio base
+                </label>
+
+                <input
+                  type="number"
+                  value={precioBase}
+                  onChange={(e) => setPrecioBase(e.target.value)}
+                  className="mt-1 w-full rounded-lg border p-2"
+                  placeholder="Ej. 35"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMostrarFormulario(false);
+                    setProductoEditando(null);
+                  }}
+                  className="rounded-lg border px-4 py-2"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    guardarProducto();
+                  }}
+                  className="rounded-lg bg-black px-4 py-2 text-white"
+                >
+                  {productoEditando
+                    ? "Actualizar"
+                    : "Guardar"}
+                </button>
+              </div>
+            </div>
           </div>
-        ))}
+        )}
+
+        <div className="mt-6">
+          <input
+            type="text"
+            value={textoBusqueda}
+            onChange={(e) => setTextoBusqueda(e.target.value)}
+            className="w-full rounded-lg border p-2"
+            placeholder="Buscar producto..."
+          />
+        </div>
+
+        {productosFiltrados.length === 0 ? (
+          <p className="mt-8 text-gray-500">
+            No hay productos que coincidan con la búsqueda.
+          </p>
+        ) : (
+          <div className="mt-8 overflow-x-auto rounded-lg border">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="p-4">Producto</th>
+                  <th className="p-4">Precio base</th>
+                  <th className="p-4">Estado</th>
+                  <th className="p-4">Acciones</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {productosFiltrados.map((producto) => (
+                  <tr
+                    key={producto.id}
+                    className="border-b last:border-b-0"
+                  >
+                    <td className="p-4 font-medium">
+                      {producto.nombre}
+                    </td>
+
+                    <td className="p-4">
+                      S/ {Number(producto.precioBase).toFixed(2)}
+                    </td>
+
+                    <td className="p-4">
+                      {producto.activo ? "Activo" : "Inactivo"}
+                    </td>
+
+                    <td className="p-4">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProductoEditando(producto);
+                            setNombre(producto.nombre);
+                            setPrecioBase(producto.precioBase);
+                            setMostrarFormulario(true);
+                          }}
+                          className="rounded-lg border px-4 py-2"
+                        >
+                          Editar
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            cambiarEstadoProducto(producto)
+                          }
+                          className="rounded-lg border px-4 py-2"
+                        >
+                          {producto.activo
+                            ? "Desactivar"
+                            : "Activar"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </main>
   );
