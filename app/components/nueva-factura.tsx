@@ -135,7 +135,7 @@ export default function FacturaVenta() {
     );
   }
 
-  function validarFactura() {
+  async function validarFactura() {
     if (!clienteSeleccionado) {
       alert("Debes seleccionar un cliente con RUC");
       return;
@@ -197,24 +197,65 @@ export default function FacturaVenta() {
       }
     }
 
-    console.log("FACTURA:", {
-      clienteId: clienteSeleccionado.id,
-      ruc: clienteSeleccionado.ruc,
-      razonSocial: clienteSeleccionado.nombre,
-      direccion: clienteSeleccionado.direccion,
-      metodoPago,
-      montoRecibido:
-        metodoPago === "EFECTIVO"
-          ? Number(montoRecibido)
-          : null,
-      detalles: productos.map((producto) => ({
-        productoId: producto.id,
-        cantidad: Number(producto.cantidad),
-        precioUnitario: Number(producto.precio),
-      })),
-    });
+    try {
+      const response = await fetch("/api/documentos/factura", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clienteId: clienteSeleccionado.id,
 
-    alert("Diseño listo. La API de factura la conectaremos después.");
+          metodoPago,
+
+          montoRecibido:
+            metodoPago === "EFECTIVO"
+              ? Number(montoRecibido)
+              : null,
+
+          detalles: productos.map((producto) => ({
+            productoId: producto.id,
+            cantidad: Number(producto.cantidad),
+            precioUnitario: Number(producto.precio),
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || data.message || "No se pudo emitir la factura");
+        return;
+      }
+
+      if (response.status === 201) {
+        alert(
+          `Factura emitida correctamente: ${data.venta?.documento?.serie}-${String(
+            data.venta?.documento?.numero
+          ).padStart(6, "0")}`
+        );
+
+        console.log("FACTURA EMITIDA:", data);
+
+        return;
+      }
+
+      if (response.status === 202) {
+        alert(
+          `La factura fue enviada y está pendiente de aceptación por SUNAT.\n\n` +
+          `Comprobante: ${data.serie}-${String(data.numero).padStart(6, "0")}`
+        );
+
+        console.log("FACTURA PENDIENTE:", data);
+
+        return;
+      }
+
+      alert(data.message || "Factura procesada");
+    } catch (error) {
+      console.error(error);
+      alert("Ocurrió un error al conectar con la API de factura");
+    }
   }
 
   async function registrarCliente() {
