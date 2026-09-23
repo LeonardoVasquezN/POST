@@ -126,78 +126,13 @@ export default function ProductosPage() {
               setProductoEditando(null);
               setNombre("");
               setPrecioBase("");
-              setMostrarFormulario(!mostrarFormulario);
+              setMostrarFormulario(true);
             }}
-            className="rounded-lg bg-black px-4 py-2 text-white"
+           className="rounded-lg border border-white bg-black px-4 py-2 text-white"
           >
             Nuevo producto
           </button>
         </div>
-
-        {mostrarFormulario && (
-          <div className="mt-6 rounded-lg border p-6">
-            <h2 className="text-lg font-semibold">
-              {productoEditando
-                ? "Editar producto"
-                : "Nuevo producto"}
-            </h2>
-
-            <div className="mt-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium">
-                  Nombre
-                </label>
-
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  className="mt-1 w-full rounded-lg border p-2"
-                  placeholder="Ej. Polo básico"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">
-                  Precio base
-                </label>
-
-                <input
-                  type="number"
-                  value={precioBase}
-                  onChange={(e) => setPrecioBase(e.target.value)}
-                  className="mt-1 w-full rounded-lg border p-2"
-                  placeholder="Ej. 35"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMostrarFormulario(false);
-                    setProductoEditando(null);
-                  }}
-                  className="rounded-lg border px-4 py-2"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    guardarProducto();
-                  }}
-                  className="rounded-lg bg-black px-4 py-2 text-white"
-                >
-                  {productoEditando
-                    ? "Actualizar"
-                    : "Guardar"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="mt-6">
           <input
@@ -278,6 +213,79 @@ export default function ProductosPage() {
           </div>
         )}
       </div>
+
+      {mostrarFormulario && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-black">
+              {productoEditando
+                ? "Editar producto"
+                : "Nuevo producto"}
+            </h2>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Nombre
+                </label>
+
+                <input
+                  type="text"
+                  value={nombre}
+                  onChange={(e) =>
+                    setNombre(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Ej. Polo básico"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Precio base
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={precioBase}
+                  onChange={(e) =>
+                    setPrecioBase(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Ej. 35"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setMostrarFormulario(false);
+                  setProductoEditando(null);
+                }}
+                className="rounded-lg border border-black px-5 py-3 text-black"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  guardarProducto();
+                }}
+                className="rounded-lg bg-black px-5 py-3 text-white"
+              >
+                {productoEditando
+                  ? "Actualizar"
+                  : "Guardar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
