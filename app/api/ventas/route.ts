@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
+type DetalleVentaInput = {
+  productoId: number;
+  cantidad: number;
+  precioUnitario: number;
+};
+
 export async function GET() {
   try {
     const ventas = await prisma.venta.findMany({
@@ -40,6 +46,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const detallesVenta = detalles as DetalleVentaInput[];
 
     const metodosPagoValidos = [
       "EFECTIVO",
@@ -125,8 +133,8 @@ export async function POST(request: Request) {
       }
     }
 
-    const total = detalles.reduce(
-      (acumulado: number, detalle: any) => {
+    const total = detallesVenta.reduce(
+      (acumulado: number, detalle) => {
         return (
           acumulado +
           Number(detalle.cantidad) * Number(detalle.precioUnitario)
@@ -183,7 +191,7 @@ export async function POST(request: Request) {
           estado: "COMPLETADA",
 
           detalles: {
-            create: detalles.map((detalle: any) => ({
+            create: detallesVenta.map((detalle) => ({
               productoId: Number(detalle.productoId),
               cantidad: Number(detalle.cantidad),
               precioUnitario: Number(detalle.precioUnitario),
