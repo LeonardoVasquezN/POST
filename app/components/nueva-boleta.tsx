@@ -698,10 +698,10 @@ export default function BoletaVenta() {
                 onClick={() =>
                   setMetodoPago(valor as MetodoPago)
                 }
-                className={`rounded-lg border px-5 py-3 ${
+                className={`rounded-lg border px-5 py-3 transition-colors ${
                   metodoPago === valor
-                    ? "bg-black text-white"
-                    : ""
+                    ? "bg-neutral-700 text-white"
+                    : "bg-transparent text-white hover:bg-neutral-800"
                 }`}
               >
                 {texto}
