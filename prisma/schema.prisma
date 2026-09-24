@@ -9,42 +9,45 @@ datasource db {
 }
 
 model Producto {
-  id          Int      @id @default(autoincrement())
-  nombre      String   @unique
-  precioBase  Decimal
-  activo      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  nombre     String   @unique
+  precioBase Decimal
+  activo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  detallesVenta DetalleVenta[]
+  detallesVenta        DetalleVenta[]
+  detallesGuiaRemision DetalleGuiaRemision[]
 }
 
 model Cliente {
-  id          Int      @id @default(autoincrement())
-  nombre      String
-  dni         String?  @unique
-  ruc         String?  @unique
-  direccion   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  dni       String?  @unique
+  ruc       String?  @unique
+  direccion String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  ventas Venta[]
+  ventas        Venta[]
+  guiasRemision GuiaRemision[]
 }
 
 model Venta {
-  id              Int      @id @default(autoincrement())
-  clienteId       Int?
-  metodoPago      MetodoPago
-  montoRecibido   Decimal?
-  vuelto          Decimal?
-  total           Decimal
-  estado          EstadoVenta
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            Int         @id @default(autoincrement())
+  clienteId     Int?
+  metodoPago    MetodoPago
+  montoRecibido Decimal?
+  vuelto        Decimal?
+  total         Decimal
+  estado        EstadoVenta
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
-  cliente         Cliente?       @relation(fields: [clienteId], references: [id])
-  detalles        DetalleVenta[]
-  documento       Documento?
+  cliente      Cliente?       @relation(fields: [clienteId], references: [id])
+  detalles     DetalleVenta[]
+  documento    Documento?
+  guiaRemision GuiaRemision?
 }
 
 model DetalleVenta {
@@ -56,13 +59,13 @@ model DetalleVenta {
   subtotal       Decimal
   createdAt      DateTime @default(now())
 
-  venta          Venta    @relation(fields: [ventaId], references: [id])
-  producto       Producto @relation(fields: [productoId], references: [id])
+  venta    Venta    @relation(fields: [ventaId], references: [id])
+  producto Producto @relation(fields: [productoId], references: [id])
 }
 
 model Documento {
-  id               Int      @id @default(autoincrement())
-  ventaId          Int      @unique
+  id               Int             @id @default(autoincrement())
+  ventaId          Int             @unique
   tipo             TipoDocumento
   serie            String
   numero           Int
@@ -70,9 +73,9 @@ model Documento {
   fechaEmision     DateTime
   codigoRespuesta  String?
   mensajeRespuesta String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  venta            Venta @relation(fields: [ventaId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  venta            Venta           @relation(fields: [ventaId], references: [id])
 
   @@unique([serie, numero])
 }
@@ -93,6 +96,108 @@ model SecuenciaDocumento {
   siguiente Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Transportista {
+  id                        Int    @id @default(autoincrement())
+  ruc                       String @unique
+  denominacion              String
+  numeroRegistroMTC         String
+  numeroAutorizacion        String
+  codigoEntidadAutorizadora String
+
+  activo Boolean @default(true)
+
+  guiasRemision GuiaRemision[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GuiaRemision {
+  id Int @id @default(autoincrement())
+
+  ventaId Int   @unique
+  venta   Venta @relation(fields: [ventaId], references: [id])
+
+  transportistaId Int
+  transportista   Transportista @relation(fields: [transportistaId], references: [id])
+
+  serie  String
+  numero Int
+
+  fechaEmision              DateTime
+  horaEmision               String
+  fechaEntregaTransportista DateTime
+
+  motivoTraslado      String
+  modalidadTransporte String @default("01")
+
+  destinatarioId Int
+  destinatario   Cliente @relation(fields: [destinatarioId], references: [id])
+
+  destinatarioTipoDocumento   String
+  destinatarioNumeroDocumento String
+  destinatarioDenominacion    String
+  destinatarioDireccion       String?
+
+  puntoPartidaUbigeo    String
+  puntoPartidaDireccion String
+
+  puntoLlegadaUbigeo    String
+  puntoLlegadaDireccion String
+
+  pesoBrutoTotal        Decimal
+  pesoBrutoUnidadMedida String  @default("KGM")
+  numeroBultos          Int
+
+  observaciones String?
+
+  estado EstadoGuia @default(PENDIENTE)
+
+  hash             String?
+  xml              String?
+  cdr              String?
+  codigoRespuesta  String?
+  mensajeRespuesta String?
+
+  detalles DetalleGuiaRemision[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([serie, numero])
+}
+
+model DetalleGuiaRemision {
+  id Int @id @default(autoincrement())
+
+  guiaRemisionId Int
+  guiaRemision   GuiaRemision @relation(fields: [guiaRemisionId], references: [id])
+
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  codigoInterno String
+  descripcion   String
+  unidadMedida  String
+  cantidad      Int
+
+  createdAt DateTime @default(now())
+}
+
+model SecuenciaGuiaRemision {
+  id        Int      @id @default(autoincrement())
+  serie     String   @unique
+  siguiente Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum EstadoGuia {
+  PENDIENTE
+  EMITIDA
+  RECHAZADA
 }
 
 enum MetodoPago {
