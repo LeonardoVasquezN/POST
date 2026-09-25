@@ -110,6 +110,31 @@ export default function NuevaGuiaRemision() {
     cargarDatos();
   }, [ventaId]);
 
+  function validarUbigeo(ubigeo: string, nombre: string) {
+  if (!/^\d{6}$/.test(ubigeo)) {
+    alert(
+      `El ubigeo de ${nombre} debe tener exactamente 6 dígitos.`
+    );
+    return false;
+  }
+
+  return true;
+}
+
+function validarDireccion(direccion: string, nombre: string) {
+    if (!direccion.trim()) {
+      alert(`Ingresa la dirección de ${nombre}.`);
+      return false;
+    }
+
+    if (direccion.trim().length < 5) {
+      alert(`La dirección de ${nombre} es demasiado corta.`);
+      return false;
+    }
+
+    return true;
+  }
+
   async function emitirGuia() {
     if (!venta) {
       return;
@@ -125,23 +150,104 @@ export default function NuevaGuiaRemision() {
       return;
     }
 
-    if (!puntoPartidaUbigeo || !puntoPartidaDireccion) {
-      alert("Completa el punto de partida");
+    const hoy = new Date();
+
+    const fechaHoy = new Date(
+      hoy.getFullYear(),
+      hoy.getMonth(),
+      hoy.getDate()
+    );
+
+    const [año, mes, dia] = fechaEntregaTransportista.split("-").map(Number);
+
+    const fechaEntrega = new Date(
+      año,
+      mes - 1,
+      dia
+    );
+
+    if (fechaEntrega < fechaHoy) {
+      alert(
+        "La fecha de entrega al transportista no puede ser anterior a hoy."
+      );
       return;
     }
 
-    if (!puntoLlegadaUbigeo || !puntoLlegadaDireccion) {
-      alert("Completa el punto de llegada");
+    if (!motivoTraslado) {
+      alert("Selecciona el motivo del traslado.");
       return;
     }
 
-    if (!pesoBrutoTotal || Number(pesoBrutoTotal) <= 0) {
-      alert("Ingresa un peso bruto total válido");
+    if (!venta.detalles || venta.detalles.length === 0) {
+      alert(
+        "La venta no tiene productos. No se puede emitir la guía."
+      );
       return;
     }
 
-    if (!numeroBultos || Number(numeroBultos) <= 0) {
-      alert("Ingresa un número de bultos válido");
+    const partidaUbigeo = puntoPartidaUbigeo.trim();
+
+    if (!partidaUbigeo) {
+      alert("Ingresa el ubigeo del punto de partida.");
+      return;
+    }
+
+    if (!validarUbigeo(partidaUbigeo, "punto de partida")) {
+      return;
+    }
+
+    if (
+      !validarDireccion(
+        puntoPartidaDireccion,
+        "punto de partida"
+      )
+    ) {
+      return;
+    }
+
+    const llegadaUbigeo = puntoLlegadaUbigeo.trim();
+
+    if (!llegadaUbigeo) {
+      alert("Ingresa el ubigeo del punto de llegada.");
+      return;
+    }
+
+    if (!validarUbigeo(llegadaUbigeo, "punto de llegada")) {
+      return;
+    }
+
+    if (
+      !validarDireccion(
+        puntoLlegadaDireccion,
+        "punto de llegada"
+      )
+    ) {
+      return;
+    }
+
+    const peso = Number(pesoBrutoTotal);
+
+    if (!pesoBrutoTotal.trim()) {
+      alert("Ingresa el peso bruto total.");
+      return;
+    }
+
+    if (!Number.isFinite(peso) || peso <= 0) {
+      alert("El peso bruto total debe ser mayor que 0.");
+      return;
+    }
+
+    const bultos = Number(numeroBultos);
+
+    if (!numeroBultos.trim()) {
+      alert("Ingresa el número de bultos.");
+      return;
+    }
+
+    if (!Number.isInteger(bultos) || bultos <= 0) {
+      alert(
+        "El número de bultos debe ser un número entero mayor que 0."
+      );
       return;
     }
 
@@ -158,13 +264,13 @@ export default function NuevaGuiaRemision() {
           transportistaId: Number(transportistaId),
           fechaEntregaTransportista,
           motivoTraslado,
-          puntoPartidaUbigeo,
-          puntoPartidaDireccion,
-          puntoLlegadaUbigeo,
-          puntoLlegadaDireccion,
-          pesoBrutoTotal: Number(pesoBrutoTotal),
-          numeroBultos: Number(numeroBultos),
-          observaciones: observaciones || null,
+          puntoPartidaUbigeo: partidaUbigeo,
+          puntoPartidaDireccion: puntoPartidaDireccion.trim(),
+          puntoLlegadaUbigeo: llegadaUbigeo,
+          puntoLlegadaDireccion: puntoLlegadaDireccion.trim(),
+          pesoBrutoTotal: peso,
+          numeroBultos: bultos,
+          observaciones: observaciones.trim() || null,
         }),
       });
 
@@ -316,6 +422,7 @@ export default function NuevaGuiaRemision() {
 
             <input
               type="date"
+              min={new Date().toISOString().split("T")[0]}
               value={fechaEntregaTransportista}
               onChange={(e) =>
                 setFechaEntregaTransportista(e.target.value)
@@ -376,9 +483,13 @@ export default function NuevaGuiaRemision() {
 
                 <input
                   type="text"
+                  maxLength={6}
+                  inputMode="numeric"
                   value={puntoPartidaUbigeo}
                   onChange={(e) =>
-                    setPuntoPartidaUbigeo(e.target.value)
+                    setPuntoPartidaUbigeo(
+                      e.target.value.replace(/\D/g, "")
+                    )
                   }
                   placeholder="Ej. 130101"
                   className="mt-1 w-full rounded-lg border px-3 py-2"
@@ -416,9 +527,13 @@ export default function NuevaGuiaRemision() {
 
                 <input
                   type="text"
+                  maxLength={6}
+                  inputMode="numeric"
                   value={puntoLlegadaUbigeo}
                   onChange={(e) =>
-                    setPuntoLlegadaUbigeo(e.target.value)
+                    setPuntoLlegadaUbigeo(
+                      e.target.value.replace(/\D/g, "")
+                    )
                   }
                   placeholder="Ej. 140101"
                   className="mt-1 w-full rounded-lg border px-3 py-2"
