@@ -266,7 +266,7 @@ export default function HistorialPage() {
                     type="button"
                     onClick={() => {
                       router.push(
-                        `/gestion/guias-remision/${ventaSeleccionada.guiaRemision.id}`
+                        `/gestion/guias-remision/${ventaSeleccionada.guiaRemision!.id}`
                       );
                     }}
                     className="rounded-lg border px-5 py-3"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type Venta = {
@@ -42,7 +42,7 @@ type Transportista = {
   codigoEntidadAutorizadora: string;
 };
 
-export default function NuevaGuiaRemision() {
+function NuevaGuiaRemisionContenido() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -633,5 +633,13 @@ function validarDireccion(direccion: string, nombre: string) {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function NuevaGuiaRemision() {
+  return (
+    <Suspense fallback={<p>Cargando...</p>}>
+      <NuevaGuiaRemisionContenido />
+    </Suspense>
   );
 }
