@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import ComprobantePreview from "../components/comprobante-preview";
 
 type Venta = {
@@ -40,6 +42,8 @@ export default function HistorialPage() {
   const [cargando, setCargando] = useState(true);
   const [ventaSeleccionada, setVentaSeleccionada] = useState<Venta | null>(null);
   const [mostrarComprobante, setMostrarComprobante] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     async function cargarVentas() {
@@ -254,22 +258,34 @@ export default function HistorialPage() {
                 Reimprimir
               </button>
 
-              {ventaSeleccionada.guiaRemision ? (
-                <button
-                  type="button"
-                  className="rounded-lg border px-5 py-3"
-                >
-                  Ver guía
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="rounded-lg bg-black px-5 py-3 text-white"
-                >
-                  Emitir guía
-                </button>
-              )}
-
+              {ventaSeleccionada.documento &&
+                (ventaSeleccionada.documento.tipo === "BOLETA" ||
+                  ventaSeleccionada.documento.tipo === "FACTURA") &&
+                (ventaSeleccionada.guiaRemision ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push(
+                        `/gestion/guias-remision/${ventaSeleccionada.guiaRemision.id}`
+                      );
+                    }}
+                    className="rounded-lg border px-5 py-3"
+                  >
+                    Ver guía
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push(
+                        `/gestion/guias-remision/nueva?ventaId=${ventaSeleccionada.id}`
+                      );
+                    }}
+                    className="rounded-lg bg-black px-5 py-3 text-white"
+                  >
+                    Emitir guía
+                  </button>
+                ))}
             </div>
           </div>
         </div>
