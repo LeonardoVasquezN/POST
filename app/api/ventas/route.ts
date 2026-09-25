@@ -15,6 +15,7 @@ export async function GET() {
       include: {
         cliente: true,
         documento: true,
+        guiaRemision: true,
         detalles: {
           include: {
             producto: true,

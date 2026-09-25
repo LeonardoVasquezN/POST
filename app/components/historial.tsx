@@ -16,6 +16,12 @@ type Venta = {
     numero: number;
     estado: string;
   } | null;
+  guiaRemision: {
+    id: number;
+    serie: string;
+    numero: number;
+    estado: string;
+  } | null;
   montoRecibido: string | number | null;
   vuelto: string | number | null;
   detalles: {
@@ -226,7 +232,6 @@ export default function HistorialPage() {
             )}
 
             <div className="mt-6 flex justify-end gap-3">
-
               <button
                 type="button"
                 onClick={() => {
@@ -248,6 +253,23 @@ export default function HistorialPage() {
               >
                 Reimprimir
               </button>
+
+              {ventaSeleccionada.guiaRemision ? (
+                <button
+                  type="button"
+                  className="rounded-lg border px-5 py-3"
+                >
+                  Ver guía
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="rounded-lg bg-black px-5 py-3 text-white"
+                >
+                  Emitir guía
+                </button>
+              )}
+
             </div>
           </div>
         </div>
