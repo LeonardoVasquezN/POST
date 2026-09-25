@@ -58,6 +58,79 @@ export async function POST(request: Request) {
       );
     }
 
+    const peso = Number(pesoBrutoTotal);
+    const bultos = Number(numeroBultos);
+
+    if (!Number.isFinite(peso) || peso <= 0) {
+      return NextResponse.json(
+        {
+          error: "El peso bruto total debe ser mayor que 0.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!Number.isInteger(bultos) || bultos <= 0) {
+      return NextResponse.json(
+        {
+          error:
+            "El número de bultos debe ser un número entero mayor que 0.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const partidaUbigeo = String(puntoPartidaUbigeo).trim();
+    const llegadaUbigeo = String(puntoLlegadaUbigeo).trim();
+
+    if (!/^\d{6}$/.test(partidaUbigeo)) {
+      return NextResponse.json(
+        {
+          error:
+            "El ubigeo del punto de partida debe tener exactamente 6 dígitos.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!/^\d{6}$/.test(llegadaUbigeo)) {
+      return NextResponse.json(
+        {
+          error:
+            "El ubigeo del punto de llegada debe tener exactamente 6 dígitos.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const partidaDireccion = String(
+      puntoPartidaDireccion
+    ).trim();
+
+    const llegadaDireccion = String(
+      puntoLlegadaDireccion
+    ).trim();
+
+    if (partidaDireccion.length < 5) {
+      return NextResponse.json(
+        {
+          error:
+            "La dirección del punto de partida es demasiado corta.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (llegadaDireccion.length < 5) {
+      return NextResponse.json(
+        {
+          error:
+            "La dirección del punto de llegada es demasiado corta.",
+        },
+        { status: 400 }
+      );
+    }
+
     const venta = await prisma.venta.findUnique({
       where: {
         id: ventaIdNumero,
@@ -83,6 +156,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (venta.detalles.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "La venta no tiene productos. No se puede generar la guía de remisión.",
+        },
+        { status: 400 }
+      );
+    }
+
     if (
       !venta.documento ||
       (venta.documento.tipo !== "BOLETA" &&
@@ -92,6 +175,38 @@ export async function POST(request: Request) {
         {
           error:
             "Solo se puede generar una guía de remisión para una boleta o factura.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const hoy = new Date();
+
+    const fechaHoy = new Date(
+      hoy.getFullYear(),
+      hoy.getMonth(),
+      hoy.getDate()
+    );
+
+    const [año, mes, dia] =
+      String(fechaEntregaTransportista)
+        .split("-")
+        .map(Number);
+
+    const fechaEntrega = new Date(
+      año,
+      mes - 1,
+      dia
+    );
+
+    if (
+      Number.isNaN(fechaEntrega.getTime()) ||
+      fechaEntrega < fechaHoy
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "La fecha de entrega al transportista no puede ser anterior a hoy.",
         },
         { status: 400 }
       );
@@ -246,13 +361,13 @@ export async function POST(request: Request) {
       destinatario_numero_de_documento: destinatarioNumeroDocumento,
       destinatario_denominacion: venta.cliente.nombre,
       destinatario_direccion: venta.cliente.direccion || "",
-      punto_de_partida_ubigeo: puntoPartidaUbigeo,
-      punto_de_partida_direccion: puntoPartidaDireccion,
-      punto_de_llegada_ubigeo: puntoLlegadaUbigeo,
-      punto_de_llegada_direccion: puntoLlegadaDireccion,
-      peso_bruto_total: pesoBrutoTotal.toString(),
+      punto_de_partida_ubigeo: partidaUbigeo,
+      punto_de_partida_direccion: partidaDireccion,
+      punto_de_llegada_ubigeo: llegadaUbigeo,
+      punto_de_llegada_direccion: llegadaDireccion,
+      peso_bruto_total: peso.toString(),
       peso_bruto_unidad_de_medida: "KGM",
-      numero_de_bultos: Number(numeroBultos),
+      numero_de_bultos: bultos,
       observaciones: observaciones || "",
 
       transportista: {
@@ -277,6 +392,8 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    console.log("PAYLOAD GUIA:", JSON.stringify(payload, null, 2));
 
     const respuestaApi = await fetch(
       "https://sandbox.apisunat.pe/api/v3/dispatches",
@@ -321,7 +438,7 @@ export async function POST(request: Request) {
         numero,
         fechaEmision: new Date(),
         horaEmision,
-        fechaEntregaTransportista: new Date(fechaEntregaTransportista),
+        fechaEntregaTransportista: fechaEntrega,
         motivoTraslado,
         modalidadTransporte: "01",
         destinatarioId: venta.cliente.id,
@@ -329,13 +446,12 @@ export async function POST(request: Request) {
         destinatarioNumeroDocumento,
         destinatarioDenominacion: venta.cliente.nombre,
         destinatarioDireccion: venta.cliente.direccion || null,
-        puntoPartidaUbigeo: puntoPartidaUbigeo,
-        puntoPartidaDireccion: puntoPartidaDireccion,
-        puntoLlegadaUbigeo: puntoLlegadaUbigeo,
-        puntoLlegadaDireccion: puntoLlegadaDireccion,
-        pesoBrutoTotal: pesoBrutoTotal,
-        pesoBrutoUnidadMedida: "KGM",
-        numeroBultos: Number(numeroBultos),
+        puntoPartidaUbigeo: partidaUbigeo,
+        puntoPartidaDireccion: partidaDireccion,
+        puntoLlegadaUbigeo: llegadaUbigeo,
+        puntoLlegadaDireccion: llegadaDireccion,
+        pesoBrutoTotal: peso,
+        numeroBultos: bultos,
         observaciones: observaciones || null,
         estado: "EMITIDA",
         hash: dataApi.payload?.hash || null,
