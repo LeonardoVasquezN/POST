@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const transportistas = await prisma.transportista.findMany({
+      where: {
+        activo: true,
+      },
       orderBy: {
         denominacion: "asc",
       },

@@ -83,6 +83,20 @@ export async function POST(request: Request) {
       );
     }
 
+    if (
+      !venta.documento ||
+      (venta.documento.tipo !== "BOLETA" &&
+        venta.documento.tipo !== "FACTURA")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Solo se puede generar una guía de remisión para una boleta o factura.",
+        },
+        { status: 400 }
+      );
+    }
+
     if (!venta.cliente) {
       return NextResponse.json(
         {
