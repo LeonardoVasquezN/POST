@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Transportista = {
   id: number;
@@ -13,22 +14,24 @@ type Transportista = {
 };
 
 export default function Transportistas() {
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const ventaId = searchParams.get("ventaId");
+
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [cargando, setCargando] = useState(true);
 
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [transportistaEditando, setTransportistaEditando] =
-    useState<Transportista | null>(null);
+  const [transportistaEditando, setTransportistaEditando] = useState<Transportista | null>(null);
 
   const [ruc, setRuc] = useState("");
   const [denominacion, setDenominacion] = useState("");
   const [numeroRegistroMTC, setNumeroRegistroMTC] = useState("");
   const [numeroAutorizacion, setNumeroAutorizacion] = useState("");
-  const [codigoEntidadAutorizadora, setCodigoEntidadAutorizadora] =
-    useState("");
+  const [codigoEntidadAutorizadora, setCodigoEntidadAutorizadora] = useState("");
 
-  const [registrandoTransportista, setRegistrandoTransportista] =
-    useState(false);
+  const [registrandoTransportista, setRegistrandoTransportista] = useState(false);
 
   const cargarTransportistas = async () => {
     try {
@@ -210,13 +213,30 @@ export default function Transportistas() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={abrirNuevo}
-            className="rounded-lg border border-white bg-black px-4 py-2 text-white"
-          >
-            + Nuevo transportista
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={abrirNuevo}
+              className="rounded-lg border border-white bg-black px-4 py-2 text-white"
+            >
+              + Nuevo transportista
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!ventaId) {
+                  router.push("/gestion/transportistas");
+                  return;
+                }
+
+                router.push(`/gestion/guias-remision/nueva?ventaId=${ventaId}`);
+              }}
+              className="rounded-lg border border-white bg-black px-4 py-2 text-white"
+            >
+              Volver a guía
+            </button>
+          </div>
         </div>
 
         {cargando ? (

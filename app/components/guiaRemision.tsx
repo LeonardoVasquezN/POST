@@ -69,6 +69,14 @@ function NuevaGuiaRemisionContenido() {
   const [cargando, setCargando] = useState(true);
   const [emitiendo, setEmitiendo] = useState(false);
 
+  const [mostrarFormularioTransportista, setMostrarFormularioTransportista] = useState(false);
+  const [ruc, setRuc] = useState("");
+  const [denominacion, setDenominacion] = useState("");
+  const [numeroRegistroMTC, setNumeroRegistroMTC] = useState("");
+  const [numeroAutorizacion, setNumeroAutorizacion] = useState("");
+  const [codigoEntidadAutorizadora, setCodigoEntidadAutorizadora] = useState("");
+  const [registrandoTransportista, setRegistrandoTransportista] = useState(false);
+
   useEffect(() => {
     async function cargarDatos() {
       if (!ventaId) {
@@ -133,6 +141,92 @@ function validarDireccion(direccion: string, nombre: string) {
     }
 
     return true;
+  }
+
+  function abrirFormularioTransportista() {
+  setRuc("");
+  setDenominacion("");
+  setNumeroRegistroMTC("");
+  setNumeroAutorizacion("");
+  setCodigoEntidadAutorizadora("");
+
+  setMostrarFormularioTransportista(true);
+}
+
+function cerrarFormularioTransportista() {
+  if (registrandoTransportista) return;
+
+  setMostrarFormularioTransportista(false);
+
+  setRuc("");
+  setDenominacion("");
+  setNumeroRegistroMTC("");
+  setNumeroAutorizacion("");
+  setCodigoEntidadAutorizadora("");
+}
+
+  async function guardarTransportista() {
+    if (registrandoTransportista) return;
+
+    if (
+      !ruc.trim() ||
+      !denominacion.trim() ||
+      !numeroRegistroMTC.trim() ||
+      !numeroAutorizacion.trim() ||
+      !codigoEntidadAutorizadora.trim()
+    ) {
+      alert("Completa todos los campos");
+      return;
+    }
+
+    if (!/^\d{11}$/.test(ruc)) {
+      alert("El RUC debe tener exactamente 11 dígitos");
+      return;
+    }
+
+    setRegistrandoTransportista(true);
+
+    try {
+      const respuesta = await fetch("/api/transportistas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ruc: ruc.trim(),
+          denominacion: denominacion.trim(),
+          numeroRegistroMTC: numeroRegistroMTC.trim(),
+          numeroAutorizacion: numeroAutorizacion.trim(),
+          codigoEntidadAutorizadora:
+            codigoEntidadAutorizadora.trim(),
+        }),
+      });
+
+      const data = await respuesta.json();
+
+      if (!respuesta.ok) {
+        alert(data.error || "No se pudo registrar el transportista");
+        return;
+      }
+
+      const nuevoTransportista = data;
+
+      setTransportistas((actuales) => [
+        ...actuales,
+        nuevoTransportista,
+      ]);
+
+      setTransportistaId(String(nuevoTransportista.id));
+
+      cerrarFormularioTransportista();
+
+      alert("Transportista registrado correctamente");
+    } catch (error) {
+      console.error(error);
+      alert("Error al registrar el transportista");
+    } finally {
+      setRegistrandoTransportista(false);
+    }
   }
 
   async function emitirGuia() {
@@ -382,38 +476,57 @@ function validarDireccion(direccion: string, nombre: string) {
           </div>
         </div>
 
-        <div className="mt-6 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold">
-            Transportista
-          </h2>
-
-          <div className="mt-4">
+        <div className="mt-4">
+          <div className="flex items-center justify-between gap-4">
             <label className="block text-sm font-medium">
               Transportista
             </label>
 
-            <select
-              value={transportistaId}
-              onChange={(e) =>
-                setTransportistaId(e.target.value)
-              }
-              className="mt-1 w-full rounded-lg border bg-black px-3 py-2 text-white"
-            >
-              <option value="">
-                Selecciona un transportista
-              </option>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={abrirFormularioTransportista}
+                className="rounded-lg border border-white px-3 py-2 text-sm"
+              >
+                + Añadir transportista
+              </button>
 
-              {transportistas.map((transportista) => (
-                <option
-                  key={transportista.id}
-                  value={transportista.id}
-                >
-                  {transportista.denominacion} - RUC{" "}
-                  {transportista.ruc}
-                </option>
-              ))}
-            </select>
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    `/gestion/transportistas?ventaId=${ventaId}`
+                  )
+                }
+                className="rounded-lg border px-3 py-2 text-sm"
+              >
+                Ver transportistas
+              </button>
+            </div>
           </div>
+
+          <select
+            value={transportistaId}
+            onChange={(e) =>
+              setTransportistaId(e.target.value)
+            }
+            className="mt-2 w-full rounded-lg border bg-black px-3 py-2 text-white"
+          >
+            <option value="">
+              Selecciona un transportista
+            </option>
+
+            {transportistas.map((transportista) => (
+              <option
+                key={transportista.id}
+                value={transportista.id}
+              >
+                {transportista.denominacion} - RUC{" "}
+                {transportista.ruc}
+              </option>
+            ))}
+          </select>
+        </div>
 
           <div className="mt-4">
             <label className="block text-sm font-medium">
@@ -430,7 +543,6 @@ function validarDireccion(direccion: string, nombre: string) {
               className="mt-1 w-full rounded-lg border px-3 py-2"
             />
           </div>
-        </div>
 
         <div className="mt-6 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">
@@ -632,6 +744,124 @@ function validarDireccion(direccion: string, nombre: string) {
           </button>
         </div>
       </div>
+
+      {mostrarFormularioTransportista && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-black">
+              Nuevo transportista
+            </h2>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  RUC
+                </label>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={11}
+                  value={ruc}
+                  onChange={(e) =>
+                    setRuc(
+                      e.target.value.replace(/\D/g, "")
+                    )
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="RUC de 11 dígitos"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Denominación
+                </label>
+
+                <input
+                  type="text"
+                  value={denominacion}
+                  onChange={(e) =>
+                    setDenominacion(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Nombre de la agencia"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Número de registro MTC
+                </label>
+
+                <input
+                  type="text"
+                  value={numeroRegistroMTC}
+                  onChange={(e) =>
+                    setNumeroRegistroMTC(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Número de registro MTC"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Número de autorización
+                </label>
+
+                <input
+                  type="text"
+                  value={numeroAutorizacion}
+                  onChange={(e) =>
+                    setNumeroAutorizacion(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Número de autorización"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Código de entidad autorizadora
+                </label>
+
+                <input
+                  type="text"
+                  value={codigoEntidadAutorizadora}
+                  onChange={(e) =>
+                    setCodigoEntidadAutorizadora(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  placeholder="Código de entidad autorizadora"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={cerrarFormularioTransportista}
+                disabled={registrandoTransportista}
+                className="rounded-lg border border-black px-5 py-3 text-black disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={guardarTransportista}
+                disabled={registrandoTransportista}
+                className="rounded-lg bg-black px-5 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {registrandoTransportista
+                  ? "Registrando..."
+                  : "Registrar transportista"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
