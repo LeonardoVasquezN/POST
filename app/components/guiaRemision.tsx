@@ -397,7 +397,7 @@ function validarDireccion(direccion: string, nombre: string) {
               onChange={(e) =>
                 setTransportistaId(e.target.value)
               }
-              className="mt-1 w-full rounded-lg border px-3 py-2"
+              className="mt-1 w-full rounded-lg border bg-black px-3 py-2 text-white"
             >
               <option value="">
                 Selecciona un transportista
@@ -447,7 +447,7 @@ function validarDireccion(direccion: string, nombre: string) {
               onChange={(e) =>
                 setMotivoTraslado(e.target.value)
               }
-              className="mt-1 w-full rounded-lg border px-3 py-2"
+              className="mt-1 w-full rounded-lg border px-3 py-2 bg-black text-white"
             >
               <option value="01">
                 Venta
@@ -624,7 +624,7 @@ function validarDireccion(direccion: string, nombre: string) {
             type="button"
             onClick={emitirGuia}
             disabled={emitiendo}
-            className="rounded-lg bg-black px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-white bg-black px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             {emitiendo
               ? "Emitiendo..."
