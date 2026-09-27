@@ -410,6 +410,7 @@ export async function POST(request: Request) {
     );
 
     const dataApi = await respuestaApi.json();
+    console.log("RESPUESTA APISUNAT:", JSON.stringify(dataApi, null, 2));
 
     if (!respuestaApi.ok || !dataApi.success) {
       console.error(
@@ -457,6 +458,7 @@ export async function POST(request: Request) {
         hash: dataApi.payload?.hash || null,
         xml: dataApi.payload?.xml || null,
         cdr: dataApi.payload?.cdr || null,
+        pdfUrl: dataApi.payload?.pdf?.a4 || null,
         codigoRespuesta: null,
         mensajeRespuesta: dataApi.message || null,
 

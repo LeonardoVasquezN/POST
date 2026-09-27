@@ -158,8 +158,17 @@ export default function VerGuiaRemision() {
             </p>
           </div>
 
-          <div className="rounded-lg border px-4 py-2 font-semibold">
-            {guia.estado}
+          <div className="flex items-center gap-3">
+            <a
+              href={`/api/guias-remision/${guia.id}/pdf`}
+              className="rounded-lg bg-black px-4 py-2 font-medium text-white border"
+            >
+              Descargar PDF A4
+            </a>
+
+            <div className="rounded-lg border px-4 py-2 font-semibold">
+              {guia.estado}
+            </div>
           </div>
         </div>
 

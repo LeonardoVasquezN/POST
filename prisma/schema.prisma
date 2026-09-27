@@ -158,6 +158,7 @@ model GuiaRemision {
   hash             String?
   xml              String?
   cdr              String?
+  pdfUrl           String?
   codigoRespuesta  String?
   mensajeRespuesta String?
 
