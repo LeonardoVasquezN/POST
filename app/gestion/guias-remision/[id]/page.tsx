@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import TicketGuia from "../../../components/TickectGuia";
 
 type GuiaRemision = {
   id: number;
@@ -87,6 +88,10 @@ export default function VerGuiaRemision() {
   const [guia, setGuia] = useState<GuiaRemision | null>(null);
   const [cargando, setCargando] = useState(true);
 
+  const imprimirTicket = () => {
+    window.print();
+  };
+
   useEffect(() => {
     async function cargarGuia() {
       try {
@@ -154,7 +159,8 @@ const modalidadTransporteTexto =
     : guia.modalidadTransporte;
 
   return (
-    <main className="min-h-screen p-8">
+    <>
+      <main className="pagina-guia min-h-screen p-8">
       <div className="mx-auto max-w-5xl">
 
         <div className="flex items-center justify-between">
@@ -175,6 +181,14 @@ const modalidadTransporteTexto =
             >
               Descargar PDF A4
             </a>
+
+            <button
+              type="button"
+              onClick={imprimirTicket}
+              className="rounded-lg border px-4 py-2 font-medium"
+            >
+              Imprimir ticket
+            </button>
 
             <div className="rounded-lg border px-4 py-2 font-semibold">
               {guia.estado}
@@ -247,7 +261,7 @@ const modalidadTransporteTexto =
                 {modalidadTransporteTexto}
               </p>
             </div>
-          </div>
+          </div>  
         </section>
 
         <section className="mt-6 rounded-lg border p-6">
@@ -508,8 +522,12 @@ const modalidadTransporteTexto =
               "Sin mensaje de respuesta"}
           </p>
         </section>
-
       </div>
     </main>
+
+    <div className="ticket-guia-print">
+      <TicketGuia guia={guia} />
+    </div>
+    </>
   );
 }
