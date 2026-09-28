@@ -143,6 +143,16 @@ export default function VerGuiaRemision() {
     guia.fechaEntregaTransportista
   ).toLocaleDateString("es-PE");
 
+  const motivoTrasladoTexto =
+  guia.motivoTraslado === "01"
+    ? "Venta"
+    : guia.motivoTraslado;
+
+const modalidadTransporteTexto =
+  guia.modalidadTransporte === "01"
+    ? "Transporte público"
+    : guia.modalidadTransporte;
+
   return (
     <main className="min-h-screen p-8">
       <div className="mx-auto max-w-5xl">
@@ -224,7 +234,7 @@ export default function VerGuiaRemision() {
               </p>
 
               <p className="font-medium">
-                {guia.motivoTraslado}
+                {motivoTrasladoTexto}
               </p>
             </div>
 
@@ -234,7 +244,7 @@ export default function VerGuiaRemision() {
               </p>
 
               <p className="font-medium">
-                {guia.modalidadTransporte}
+                {modalidadTransporteTexto}
               </p>
             </div>
           </div>

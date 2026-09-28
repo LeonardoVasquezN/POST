@@ -564,7 +564,7 @@ function cerrarFormularioTransportista() {
               <option value="01">
                 Venta
               </option>
-              <option value="02">
+              {/* <option value="02">
                 Compra
               </option>
               <option value="03">
@@ -578,7 +578,7 @@ function cerrarFormularioTransportista() {
               </option>
               <option value="13">
                 Otros
-              </option>
+              </option> */}
             </select>
           </div>
 
