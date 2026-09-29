@@ -6,12 +6,78 @@ type DetalleVentaInput = {
   precioUnitario: number;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+
+    const desde = searchParams.get("desde");
+    const hasta = searchParams.get("hasta");
+    const tipo = searchParams.get("tipo");
+
+    const where: {
+      createdAt?: {
+        gte?: Date;
+        lte?: Date;
+      };
+      documento?: {
+        tipo: "NOTA" | "BOLETA" | "FACTURA";
+      };
+    } = {};
+
+    if (desde || hasta) {
+      where.createdAt = {};
+
+      if (desde) {
+        const fechaDesde = new Date(`${desde}T00:00:00`);
+
+        if (isNaN(fechaDesde.getTime())) {
+          return Response.json(
+            { error: "La fecha desde no es válida" },
+            { status: 400 }
+          );
+        }
+
+        where.createdAt.gte = fechaDesde;
+      }
+
+      if (hasta) {
+        const fechaHasta = new Date(`${hasta}T23:59:59.999`);
+
+        if (isNaN(fechaHasta.getTime())) {
+          return Response.json(
+            { error: "La fecha hasta no es válida" },
+            { status: 400 }
+          );
+        }
+
+        where.createdAt.lte = fechaHasta;
+      }
+    }
+    
+    if (tipo && tipo !== "TODOS") {
+      if (
+        tipo !== "NOTA" &&
+        tipo !== "BOLETA" &&
+        tipo !== "FACTURA"
+      ) {
+        return Response.json(
+          { error: "El tipo de comprobante no es válido" },
+          { status: 400 }
+        );
+      }
+
+      where.documento = {
+        tipo,
+      };
+    }
+
     const ventas = await prisma.venta.findMany({
+      where,
+
       orderBy: {
         createdAt: "desc",
       },
+
       include: {
         cliente: true,
         documento: true,
