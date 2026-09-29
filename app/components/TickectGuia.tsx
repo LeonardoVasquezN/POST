@@ -1,5 +1,9 @@
+import { QRCodeSVG } from "qrcode.react";
+
 type TicketGuiaProps = {
   guia: {
+    pdfUrl: string | null;
+
     serie: string;
     numero: number;
 
@@ -302,6 +306,16 @@ export default function TicketGuia({
         <p className="mt-1">
           Representación impresa
         </p>
+
+        {guia.pdfUrl && (
+          <div className="mt-3 flex justify-center">
+            <QRCodeSVG
+              value={guia.pdfUrl}
+              size={120}
+              level="M"
+            />
+          </div>
+        )}
 
         <p className="mt-2 text-[13px] font-bold">
           {numeroGuia}
