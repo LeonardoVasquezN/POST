@@ -43,28 +43,46 @@ export default function HistorialPage() {
   const [ventaSeleccionada, setVentaSeleccionada] = useState<Venta | null>(null);
   const [mostrarComprobante, setMostrarComprobante] = useState(false);
 
+  const hoy = new Date();
+
+  const fechaHoy = `${hoy.getFullYear()}-${String(
+    hoy.getMonth() + 1
+  ).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+
+  const [desde, setDesde] = useState(fechaHoy);
+  const [hasta, setHasta] = useState(fechaHoy);
+  const [tipo, setTipo] = useState("TODOS");
+
   const router = useRouter();
 
-  useEffect(() => {
-    async function cargarVentas() {
-      try {
-        const response = await fetch("/api/ventas");
-        const data = await response.json();
+  async function cargarVentas() {
+    try {
+      setCargando(true);
 
-        if (!response.ok) {
-          alert(data.error);
-          return;
-        }
+      const params = new URLSearchParams({
+        desde,
+        hasta,
+        tipo,
+      });
 
-        setVentas(data);
-      } catch (error) {
-        console.error(error);
-        alert("Error al cargar el historial");
-      } finally {
-        setCargando(false);
+      const response = await fetch(`/api/ventas?${params.toString()}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error);
+        return;
       }
-    }
 
+      setVentas(data);
+    } catch (error) {
+      console.error(error);
+      alert("Error al cargar el historial");
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  useEffect(() => {
     cargarVentas();
   }, []);
 
@@ -75,11 +93,78 @@ export default function HistorialPage() {
           Historial de ventas
         </h1>
 
+        <div className="mt-6 rounded-lg border bg-black p-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Desde
+              </label>
+
+              <input
+                type="date"
+                value={desde}
+                onChange={(e) => setDesde(e.target.value)}
+                className="rounded-lg border px-3 py-2"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Hasta
+              </label>
+
+              <input
+                type="date"
+                value={hasta}
+                onChange={(e) => setHasta(e.target.value)}
+                className="rounded-lg border px-3 py-2"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Comprobante
+              </label>
+
+              <select
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value)}
+                className="rounded-lg border px-3 py-2 bg-black"
+              >
+                <option value="TODOS">Todos</option>
+                <option value="NOTA">Notas de venta</option>
+                <option value="BOLETA">Boletas</option>
+                <option value="FACTURA">Facturas</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!desde || !hasta) {
+                  alert("Selecciona ambas fechas");
+                  return;
+                }
+
+                if (desde > hasta) {
+                  alert("La fecha desde no puede ser mayor que la fecha hasta");
+                  return;
+                }
+
+                cargarVentas();
+              }}
+              className="rounded-lg bg-black px-5 py-2 text-white border border-white"
+            >
+              Buscar
+            </button>
+          </div>
+        </div>
+
         {cargando ? (
           <p className="mt-8">Cargando ventas...</p>
         ) : ventas.length === 0 ? (
           <p className="mt-8 text-gray-500">
-            No hay ventas registradas.
+            No hay ventas para los filtros seleccionados.
           </p>
         ) : (
           <div className="mt-8 overflow-x-auto rounded-lg border">
