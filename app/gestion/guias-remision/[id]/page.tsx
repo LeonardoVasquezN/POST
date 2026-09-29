@@ -39,6 +39,11 @@ type GuiaRemision = {
 
   estado: string;
 
+  hash: string | null;
+  xml: string | null;
+  cdr: string | null;
+  pdfUrl: string | null;
+  codigoRespuesta: string | null;
   mensajeRespuesta: string | null;
 
   venta: {
