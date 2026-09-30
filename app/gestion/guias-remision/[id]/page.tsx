@@ -128,7 +128,9 @@ export default function VerGuiaRemision() {
   if (cargando) {
     return (
       <main className="min-h-screen p-8">
-        <p>Cargando guía...</p>
+        <div className="mx-auto max-w-6xl">
+          <p className="mt-8">Cargando guía...</p>
+        </div>
       </main>
     );
   }
