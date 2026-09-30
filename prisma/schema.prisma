@@ -120,18 +120,28 @@ model GuiaRemision {
   ventaId Int   @unique
   venta   Venta @relation(fields: [ventaId], references: [id])
 
-  transportistaId Int
-  transportista   Transportista @relation(fields: [transportistaId], references: [id])
+  transportistaId Int?
+  transportista   Transportista? @relation(fields: [transportistaId], references: [id])
+
+  modalidadTransporte String @default("01")
+
+  fechaInicioTraslado      DateTime?
+
+  placaVehiculo            String?
+  conductorTipoDocumento   String?
+  conductorNumeroDocumento String?
+  conductorNombres         String?
+  conductorApellidos       String?
+  licenciaConducir         String?
 
   serie  String
   numero Int
 
   fechaEmision              DateTime
   horaEmision               String
-  fechaEntregaTransportista DateTime
+  fechaEntregaTransportista DateTime?
 
   motivoTraslado      String
-  modalidadTransporte String @default("01")
 
   destinatarioId Int
   destinatario   Cliente @relation(fields: [destinatarioId], references: [id])

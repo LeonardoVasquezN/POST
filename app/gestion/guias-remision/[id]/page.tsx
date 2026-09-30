@@ -7,14 +7,14 @@ import TicketGuia from "../../../components/TickectGuia";
 type GuiaRemision = {
   id: number;
   ventaId: number;
-  transportistaId: number;
+  transportistaId: number | null;
 
   serie: string;
   numero: number;
 
   fechaEmision: string;
   horaEmision: string;
-  fechaEntregaTransportista: string;
+  fechaEntregaTransportista: string | null;
 
   motivoTraslado: string;
   modalidadTransporte: string;
@@ -65,7 +65,7 @@ type GuiaRemision = {
     numeroRegistroMTC: string;
     numeroAutorizacion: string;
     codigoEntidadAutorizadora: string;
-  };
+  } | null;
 
   destinatario: {
     id: number;
@@ -149,19 +149,21 @@ export default function VerGuiaRemision() {
     guia.fechaEmision
   ).toLocaleDateString("es-PE");
 
-  const fechaEntrega = new Date(
-    guia.fechaEntregaTransportista
-  ).toLocaleDateString("es-PE");
+  const fechaEntrega = guia.fechaEntregaTransportista
+  ? new Date(guia.fechaEntregaTransportista).toLocaleDateString("es-PE")
+  : null;
 
   const motivoTrasladoTexto =
   guia.motivoTraslado === "01"
     ? "Venta"
     : guia.motivoTraslado;
 
-const modalidadTransporteTexto =
+  const modalidadTransporteTexto =
   guia.modalidadTransporte === "01"
     ? "Transporte público"
-    : guia.modalidadTransporte;
+    : guia.modalidadTransporte === "02"
+      ? "Transporte privado"
+      : guia.modalidadTransporte;
 
   return (
     <>
@@ -238,13 +240,17 @@ const modalidadTransporteTexto =
             </div>
 
             <div>
-              <p className="text-sm text-gray-500">
-                Fecha entrega al transportista
-              </p>
+              {guia.modalidadTransporte === "01" && (
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Fecha entrega al transportista
+                  </p>
 
-              <p className="font-medium">
-                {fechaEntrega}
-              </p>
+                  <p className="font-medium">
+                    {fechaEntrega}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
@@ -333,55 +339,56 @@ const modalidadTransporteTexto =
             </div>
           </div>
         </section>
+        {guia.modalidadTransporte === "01" &&
+          guia.transportista && (
+            <section className="mt-6 rounded-lg border p-6">
+              <h2 className="text-xl font-semibold">
+                Transportista
+              </h2>
 
-        <section className="mt-6 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold">
-            Transportista
-          </h2>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Denominación
+                  </p>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <p className="text-sm text-gray-500">
-                Denominación
-              </p>
+                  <p className="font-medium">
+                    {guia.transportista.denominacion}
+                  </p>
+                </div>
 
-              <p className="font-medium">
-                {guia.transportista.denominacion}
-              </p>
-            </div>
+                <div>
+                  <p className="text-sm text-gray-500">
+                    RUC
+                  </p>
 
-            <div>
-              <p className="text-sm text-gray-500">
-                RUC
-              </p>
+                  <p className="font-medium">
+                    {guia.transportista.ruc}
+                  </p>
+                </div>
 
-              <p className="font-medium">
-                {guia.transportista.ruc}
-              </p>
-            </div>
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Registro MTC
+                  </p>
 
-            <div>
-              <p className="text-sm text-gray-500">
-                Registro MTC
-              </p>
+                  <p className="font-medium">
+                    {guia.transportista.numeroRegistroMTC}
+                  </p>
+                </div>
 
-              <p className="font-medium">
-                {guia.transportista.numeroRegistroMTC}
-              </p>
-            </div>
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Número de autorización
+                  </p>
 
-            <div>
-              <p className="text-sm text-gray-500">
-                Número de autorización
-              </p>
-
-              <p className="font-medium">
-                {guia.transportista.numeroAutorizacion}
-              </p>
-            </div>
-          </div>
-        </section>
-
+                  <p className="font-medium">
+                    {guia.transportista.numeroAutorizacion}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
         <section className="mt-6 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">
             Traslado

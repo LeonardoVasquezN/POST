@@ -51,12 +51,23 @@ function NuevaGuiaRemisionContenido() {
   const [venta, setVenta] = useState<Venta | null>(null);
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
 
+  const [modalidadTransporte, setModalidadTransporte] = useState("01");
+
   const [transportistaId, setTransportistaId] = useState("");
   const [fechaEntregaTransportista, setFechaEntregaTransportista] = useState("");
+
+  const [fechaInicioTraslado, setFechaInicioTraslado] = useState("");
+  const [placaVehiculo, setPlacaVehiculo] = useState("");
+  const [conductorTipoDocumento, setConductorTipoDocumento] = useState("1");
+  const [conductorNumeroDocumento, setConductorNumeroDocumento] = useState("");
+  const [conductorNombres, setConductorNombres] = useState("");
+  const [conductorApellidos, setConductorApellidos] = useState("");
+  const [licenciaConducir, setLicenciaConducir] = useState("");
+
   const [motivoTraslado, setMotivoTraslado] = useState("01");
 
-  const [puntoPartidaUbigeo, setPuntoPartidaUbigeo] = useState("");
-  const [puntoPartidaDireccion, setPuntoPartidaDireccion] = useState("");
+  const puntoPartidaUbigeo = "130101";
+  const puntoPartidaDireccion = "TRUJILLO | DEPARTAMENTO LA LIBERTAD - CALLE SINCHI ROCA NR.803 INT A URB. CHICAGO TRUJILLO";
 
   const [puntoLlegadaUbigeo, setPuntoLlegadaUbigeo] = useState("");
   const [puntoLlegadaDireccion, setPuntoLlegadaDireccion] = useState("");
@@ -234,16 +245,6 @@ function cerrarFormularioTransportista() {
       return;
     }
 
-    if (!transportistaId) {
-      alert("Selecciona un transportista");
-      return;
-    }
-
-    if (!fechaEntregaTransportista) {
-      alert("Selecciona la fecha de entrega al transportista");
-      return;
-    }
-
     const hoy = new Date();
 
     const fechaHoy = new Date(
@@ -252,19 +253,83 @@ function cerrarFormularioTransportista() {
       hoy.getDate()
     );
 
-    const [año, mes, dia] = fechaEntregaTransportista.split("-").map(Number);
+    if (modalidadTransporte === "01") {
+      if (!transportistaId) {
+        alert("Selecciona un transportista");
+        return;
+      }
 
-    const fechaEntrega = new Date(
-      año,
-      mes - 1,
-      dia
-    );
+      if (!fechaEntregaTransportista) {
+        alert("Selecciona la fecha de entrega al transportista");
+        return;
+      }
 
-    if (fechaEntrega < fechaHoy) {
-      alert(
-        "La fecha de entrega al transportista no puede ser anterior a hoy."
+      const [año, mes, dia] = fechaEntregaTransportista.split("-").map(Number);
+
+      const fechaEntrega = new Date(
+        año,
+        mes - 1,
+        dia
       );
-      return;
+
+      if (fechaEntrega < fechaHoy) {
+        alert(
+          "La fecha de entrega al transportista no puede ser anterior a hoy."
+        );
+        return;
+      }
+    }
+
+    if (modalidadTransporte === "02") {
+      if (!fechaInicioTraslado) {
+        alert("Selecciona la fecha de inicio del traslado");
+        return;
+      }
+
+      const [año, mes, dia] = fechaInicioTraslado.split("-").map(Number);
+
+      const fechaInicio = new Date(
+        año,
+        mes - 1,
+        dia
+      );
+
+      if (fechaInicio < fechaHoy) {
+        alert(
+          "La fecha de inicio del traslado no puede ser anterior a hoy."
+        );
+        return;
+      }
+
+      if (!placaVehiculo.trim()) {
+        alert("Ingresa la placa del vehículo.");
+        return;
+      }
+
+      if (!conductorTipoDocumento.trim()) {
+        alert("Selecciona el tipo de documento del conductor.");
+        return;
+      }
+
+      if (!conductorNumeroDocumento.trim()) {
+        alert("Ingresa el número de documento del conductor.");
+        return;
+      }
+
+      if (!conductorNombres.trim()) {
+        alert("Ingresa los nombres del conductor.");
+        return;
+      }
+
+      if (!conductorApellidos.trim()) {
+        alert("Ingresa los apellidos del conductor.");
+        return;
+      }
+
+      if (!licenciaConducir.trim()) {
+        alert("Ingresa la licencia de conducir.");
+        return;
+      }
     }
 
     if (!motivoTraslado) {
@@ -355,13 +420,62 @@ function cerrarFormularioTransportista() {
         },
         body: JSON.stringify({
           ventaId: venta.id,
-          transportistaId: Number(transportistaId),
-          fechaEntregaTransportista,
+
+          modalidadTransporte,
+
+          transportistaId:
+            modalidadTransporte === "01"
+              ? Number(transportistaId)
+              : null,
+
+          fechaEntregaTransportista:
+            modalidadTransporte === "01"
+              ? fechaEntregaTransportista
+              : null,
+
+          fechaInicioTraslado:
+            modalidadTransporte === "02"
+              ? fechaInicioTraslado
+              : null,
+
+          placaVehiculo:
+            modalidadTransporte === "02"
+              ? placaVehiculo.trim()
+              : null,
+
+          conductorTipoDocumento:
+            modalidadTransporte === "02"
+              ? conductorTipoDocumento
+              : null,
+
+          conductorNumeroDocumento:
+            modalidadTransporte === "02"
+              ? conductorNumeroDocumento.trim()
+              : null,
+
+          conductorNombres:
+            modalidadTransporte === "02"
+              ? conductorNombres.trim()
+              : null,
+
+          conductorApellidos:
+            modalidadTransporte === "02"
+              ? conductorApellidos.trim()
+              : null,
+
+          licenciaConducir:
+            modalidadTransporte === "02"
+              ? licenciaConducir.trim()
+              : null,
+
           motivoTraslado,
+
           puntoPartidaUbigeo: partidaUbigeo,
           puntoPartidaDireccion: puntoPartidaDireccion.trim(),
+
           puntoLlegadaUbigeo: llegadaUbigeo,
           puntoLlegadaDireccion: puntoLlegadaDireccion.trim(),
+
           pesoBrutoTotal: peso,
           numeroBultos: bultos,
           observaciones: observaciones.trim() || null,
@@ -371,18 +485,25 @@ function cerrarFormularioTransportista() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || "No se pudo emitir la guía");
+        alert(
+          data.error ||
+            "No se pudo emitir la guía"
+        );
         return;
       }
 
-      alert("Guía de remisión emitida correctamente");
+      alert(
+        "Guía de remisión emitida correctamente"
+      );
 
       router.push(
         `/gestion/guias-remision/${data.guiaRemision.id}`
       );
     } catch (error) {
       console.error(error);
-      alert("Error al emitir la guía de remisión");
+      alert(
+        "Error al emitir la guía de remisión"
+      );
     } finally {
       setEmitiendo(false);
     }
@@ -476,73 +597,248 @@ function cerrarFormularioTransportista() {
           </div>
         </div>
 
-        <div className="mt-4">
-          <div className="flex items-center justify-between gap-4">
-            <label className="block text-sm font-medium">
-              Transportista
-            </label>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={abrirFormularioTransportista}
-                className="rounded-lg border border-white px-3 py-2 text-sm"
-              >
-                + Añadir transportista
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(
-                    `/gestion/transportistas?ventaId=${ventaId}`
-                  )
-                }
-                className="rounded-lg border px-3 py-2 text-sm"
-              >
-                Ver transportistas
-              </button>
-            </div>
-          </div>
-
-          <select
-            value={transportistaId}
-            onChange={(e) =>
-              setTransportistaId(e.target.value)
-            }
-            className="mt-2 w-full rounded-lg border bg-black px-3 py-2 text-white"
-          >
-            <option value="">
-              Selecciona un transportista
-            </option>
-
-            {transportistas.map((transportista) => (
-              <option
-                key={transportista.id}
-                value={transportista.id}
-              >
-                {transportista.denominacion} - RUC{" "}
-                {transportista.ruc}
-              </option>
-            ))}
-          </select>
-        </div>
+        <div className="mt-6 rounded-lg border p-6">
+          <h2 className="text-xl font-semibold">
+            Modalidad de transporte
+          </h2>
 
           <div className="mt-4">
             <label className="block text-sm font-medium">
-              Fecha de entrega al transportista
+              Modalidad
             </label>
 
-            <input
-              type="date"
-              min={new Date().toISOString().split("T")[0]}
-              value={fechaEntregaTransportista}
+            <select
+              value={modalidadTransporte}
               onChange={(e) =>
-                setFechaEntregaTransportista(e.target.value)
+                setModalidadTransporte(e.target.value)
               }
-              className="mt-1 w-full rounded-lg border px-3 py-2"
-            />
+              className="mt-1 w-full rounded-lg border bg-black px-3 py-2 text-white"
+            >
+              <option value="01">
+                Público
+              </option>
+
+              <option value="02">
+                Privado
+              </option>
+            </select>
           </div>
+
+          {modalidadTransporte === "01" && (
+            <>
+              <div className="mt-6">
+                <div className="flex items-center justify-between gap-4">
+                  <label className="block text-sm font-medium">
+                    Transportista
+                  </label>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={abrirFormularioTransportista}
+                      className="rounded-lg border border-white px-3 py-2 text-sm"
+                    >
+                      + Añadir transportista
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(
+                          `/gestion/transportistas?ventaId=${ventaId}`
+                        )
+                      }
+                      className="rounded-lg border px-3 py-2 text-sm"
+                    >
+                      Ver transportistas
+                    </button>
+                  </div>
+                </div>
+
+                <select
+                  value={transportistaId}
+                  onChange={(e) =>
+                    setTransportistaId(e.target.value)
+                  }
+                  className="mt-2 w-full rounded-lg border bg-black px-3 py-2 text-white"
+                >
+                  <option value="">
+                    Selecciona un transportista
+                  </option>
+
+                  {transportistas.map((transportista) => (
+                    <option
+                      key={transportista.id}
+                      value={transportista.id}
+                    >
+                      {transportista.denominacion} - RUC{" "}
+                      {transportista.ruc}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium">
+                  Fecha de entrega al transportista
+                </label>
+
+                <input
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  value={fechaEntregaTransportista}
+                  onChange={(e) =>
+                    setFechaEntregaTransportista(
+                      e.target.value
+                    )
+                  }
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
+                />
+              </div>
+            </>
+          )}
+
+          {modalidadTransporte === "02" && (
+            <>
+              <div className="mt-6">
+                <label className="block text-sm font-medium">
+                  Fecha de inicio del traslado
+                </label>
+
+                <input
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  value={fechaInicioTraslado}
+                  onChange={(e) =>
+                    setFechaInicioTraslado(e.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
+                />
+              </div>
+
+              <div className="mt-6">
+                <h3 className="font-semibold">
+                  Vehículo
+                </h3>
+
+                <div className="mt-3">
+                  <label className="block text-sm font-medium">
+                    Placa
+                  </label>
+
+                  <input
+                    type="text"
+                    value={placaVehiculo}
+                    onChange={(e) =>
+                      setPlacaVehiculo(
+                        e.target.value.toUpperCase()
+                      )
+                    }
+                    placeholder="Ej. ABC-123"
+                    className="mt-1 w-full rounded-lg border px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="font-semibold">
+                  Conductor
+                </h3>
+
+                <div className="mt-3 grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Tipo de documento
+                    </label>
+
+                    <select
+                      value={conductorTipoDocumento}
+                      onChange={(e) =>
+                        setConductorTipoDocumento(
+                          e.target.value
+                        )
+                      }
+                      className="mt-1 w-full rounded-lg border bg-black px-3 py-2 text-white"
+                    >
+                      <option value="1">
+                        DNI
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Número de documento
+                    </label>
+
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={conductorNumeroDocumento}
+                      onChange={(e) =>
+                        setConductorNumeroDocumento(
+                          e.target.value.replace(/\D/g, "")
+                        )
+                      }
+                      placeholder="DNI del conductor"
+                      className="mt-1 w-full rounded-lg border px-3 py-2"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Nombres
+                    </label>
+
+                    <input
+                      type="text"
+                      value={conductorNombres}
+                      onChange={(e) =>
+                        setConductorNombres(e.target.value)
+                      }
+                      placeholder="Nombres del conductor"
+                      className="mt-1 w-full rounded-lg border px-3 py-2"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Apellidos
+                    </label>
+
+                    <input
+                      type="text"
+                      value={conductorApellidos}
+                      onChange={(e) =>
+                        setConductorApellidos(e.target.value)
+                      }
+                      placeholder="Apellidos del conductor"
+                      className="mt-1 w-full rounded-lg border px-3 py-2"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium">
+                    Licencia de conducir
+                  </label>
+
+                  <input
+                    type="text"
+                    value={licenciaConducir}
+                    onChange={(e) =>
+                      setLicenciaConducir(
+                        e.target.value.toUpperCase()
+                      )
+                    }
+                    placeholder="Número de licencia"
+                    className="mt-1 w-full rounded-lg border px-3 py-2"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
         <div className="mt-6 rounded-lg border p-6">
           <h2 className="text-xl font-semibold">
@@ -593,19 +889,9 @@ function cerrarFormularioTransportista() {
                   Ubigeo
                 </label>
 
-                <input
-                  type="text"
-                  maxLength={6}
-                  inputMode="numeric"
-                  value={puntoPartidaUbigeo}
-                  onChange={(e) =>
-                    setPuntoPartidaUbigeo(
-                      e.target.value.replace(/\D/g, "")
-                    )
-                  }
-                  placeholder="Ej. 130101"
-                  className="mt-1 w-full rounded-lg border px-3 py-2"
-                />
+                <div className="mt-1 w-full rounded-lg border bg-black px-3 py-2 text-white">
+                  {puntoPartidaUbigeo}
+                </div>
               </div>
 
               <div>
@@ -613,15 +899,9 @@ function cerrarFormularioTransportista() {
                   Dirección
                 </label>
 
-                <input
-                  type="text"
-                  value={puntoPartidaDireccion}
-                  onChange={(e) =>
-                    setPuntoPartidaDireccion(e.target.value)
-                  }
-                  placeholder="Dirección de partida"
-                  className="mt-1 w-full rounded-lg border px-3 py-2"
-                />
+                <div className="mt-1 w-full rounded-lg border bg-black px-3 py-2 text-white">
+                  {puntoPartidaDireccion}
+                </div>
               </div>
             </div>
           </div>
@@ -664,7 +944,7 @@ function cerrarFormularioTransportista() {
                     setPuntoLlegadaDireccion(e.target.value)
                   }
                   placeholder="Dirección de llegada"
-                  className="mt-1 w-full rounded-lg border px-3 py-2"
+                  className="mt-1 w-full rounded-lg border bg-black px-3 py-2 text-white"
                 />
               </div>
             </div>

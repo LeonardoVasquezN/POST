@@ -9,7 +9,7 @@ type TicketGuiaProps = {
 
     fechaEmision: string;
     horaEmision: string;
-    fechaEntregaTransportista: string;
+    fechaEntregaTransportista: string | null;
 
     motivoTraslado: string;
     modalidadTransporte: string;
@@ -41,7 +41,7 @@ type TicketGuiaProps = {
       denominacion: string;
       numeroRegistroMTC: string;
       numeroAutorizacion: string;
-    };
+    } | null;
 
     detalles: {
       codigoInterno: string;
@@ -63,9 +63,11 @@ export default function TicketGuia({
     guia.fechaEmision
   ).toLocaleDateString("es-PE");
 
-  const fechaEntrega = new Date(
-    guia.fechaEntregaTransportista
-  ).toLocaleDateString("es-PE");
+  const fechaEntrega = guia.fechaEntregaTransportista
+  ? new Date(
+      guia.fechaEntregaTransportista
+    ).toLocaleDateString("es-PE")
+  : null;
 
   const motivoTraslado =
     guia.motivoTraslado === "01"
@@ -116,7 +118,7 @@ export default function TicketGuia({
           <span>{guia.horaEmision}</span>
 
           <span className="font-bold">Entrega:</span>
-          <span>{fechaEntrega}</span>
+          <span>{fechaEntrega || "No aplica"}</span>
 
           <span className="font-bold">Motivo:</span>
           <span>{motivoTraslado}</span>
@@ -173,36 +175,43 @@ export default function TicketGuia({
 
       <div className="my-3 border-t border-black" />
 
-      <section>
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide">
-          Transportista
-        </p>
+      {guia.modalidadTransporte === "01" &&
+        guia.transportista && (
+          <> 
+            <section>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wide">
+                Transportista
+              </p>
 
-        <p className="font-bold">
-          {guia.transportista.denominacion}
-        </p>
+              <p className="font-bold">
+                {guia.transportista.denominacion}
+              </p>
 
-        <div className="mt-1">
-          <p>
-            <span className="font-bold">RUC:</span>{" "}
-            {guia.transportista.ruc}
-          </p>
+              <div className="mt-1">
+                <p>
+                  <span className="font-bold">RUC:</span>{" "}
+                  {guia.transportista.ruc}
+                </p>
 
-          <p>
-            <span className="font-bold">
-              Registro MTC:
-            </span>{" "}
-            {guia.transportista.numeroRegistroMTC}
-          </p>
+                <p>
+                  <span className="font-bold">
+                    Registro MTC:
+                  </span>{" "}
+                  {guia.transportista.numeroRegistroMTC}
+                </p>
 
-          <p>
-            <span className="font-bold">
-              Autorización:
-            </span>{" "}
-            {guia.transportista.numeroAutorizacion}
-          </p>
-        </div>
-      </section>
+                <p>
+                  <span className="font-bold">
+                    Autorización:
+                  </span>{" "}
+                  {guia.transportista.numeroAutorizacion}
+                </p>
+              </div>
+            </section>
+
+            <div className="my-3 border-t border-black" />
+          </>
+        )}
 
       <div className="my-3 border-t border-black" />
 
