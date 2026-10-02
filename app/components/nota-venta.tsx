@@ -173,9 +173,9 @@ export default function NotaVenta() {
 
     try {
       const endpoint =
-      nuevoClienteTipoDocumento === "DNI"
-        ? `/api/consultas/dni?dni=${documento}`
-        : `/api/consultas/ruc?ruc=${documento}`;
+        nuevoClienteTipoDocumento === "DNI"
+          ? `/api/consultas/dni?dni=${documento}`
+          : `/api/consultas/ruc?ruc=${documento}`;
 
       const response = await fetch(endpoint);
       const data = await response.json();
@@ -507,46 +507,103 @@ export default function NotaVenta() {
   );
 
   return (
-    <main className="min-h-screen p-8">
-      <div className="mx-auto max-w-5xl">
-        <h1 className="text-3xl font-bold">
-          Nueva nota de venta
-        </h1>
+    <main className="min-h-screen bg-black px-5 py-8 md:px-10">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-green-400" />
 
-        <section className="mt-8 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold">
-            Cliente
-          </h2>
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-gray-600">
+              Ventas
+            </span>
+          </div>
 
-          <div className="relative mt-4">
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={
-                  clienteSeleccionado
-                    ? clienteSeleccionado.nombre
-                    : busquedaCliente
-                }
-                onChange={(e) => {
-                  setClienteSeleccionado(null);
-                  setBusquedaCliente(e.target.value);
-                }}
-                className="w-full rounded-lg border p-3"
-                placeholder="Buscar cliente por nombre, DNI o RUC..."
-              />
+          <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+            Nueva nota de venta
+          </h1>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Registra una nueva venta seleccionando el cliente,
+            productos y método de pago.
+          </p>
+        </div>
+
+        <section className="rounded-2xl border border-white/[0.07] bg-white/[0.035] p-5 md:p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-400/10 text-blue-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.6}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 19a6 6 0 00-12 0m6-8a4 4 0 100-8 4 4 0 000 8zm5-4h4m-2-2v4"
+                />
+              </svg>
+            </div>
+
+            <div>
+              <h2 className="text-base font-bold text-white">
+                Cliente
+              </h2>
+
+              <p className="text-xs text-gray-600">
+                Selecciona el cliente de la venta.
+              </p>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.7}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m21 21-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+
+                <input
+                  type="text"
+                  value={
+                    clienteSeleccionado
+                      ? clienteSeleccionado.nombre
+                      : busquedaCliente
+                  }
+                  onChange={(e) => {
+                    setClienteSeleccionado(null);
+                    setBusquedaCliente(e.target.value);
+                  }}
+                  className="w-full rounded-xl border border-white/[0.08] bg-black py-3 pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-gray-700 focus:border-blue-400/40"
+                  placeholder="Buscar cliente por nombre, DNI o RUC..."
+                />
+              </div>
 
               <button
                 type="button"
                 onClick={() => setMostrarModalCliente(true)}
-                className="whitespace-nowrap rounded-lg border px-5 py-3"
+                className="rounded-xl border border-blue-400/20 bg-blue-400/10 px-5 py-3 text-xs font-bold text-blue-400 transition hover:bg-blue-400/15"
               >
-                Nuevo cliente
+                + Nuevo cliente
               </button>
             </div>
 
             {busquedaCliente &&
               clientesFiltrados.length > 0 && (
-                <div className="absolute left-0 right-0 z-10 mt-1 rounded-lg border bg-black shadow">
+                <div className="absolute left-0 right-0 z-20 mt-2 overflow-hidden rounded-xl border border-white/[0.08] bg-[#111111] shadow-2xl">
                   {clientesFiltrados.map((cliente) => (
                     <button
                       key={cliente.id}
@@ -555,21 +612,21 @@ export default function NotaVenta() {
                         setClienteSeleccionado(cliente);
                         setBusquedaCliente("");
                       }}
-                      className="block w-full border-b p-3 text-left hover:bg-neutral-800"
+                      className="block w-full border-b border-white/[0.06] p-4 text-left transition last:border-0 hover:bg-white/[0.04]"
                     >
-                      <div>{cliente.nombre}</div>
+                      <div className="text-sm font-semibold text-white">
+                        {cliente.nombre}
+                      </div>
 
-                      {cliente.dni && (
-                        <div className="text-sm text-gray-400">
-                          DNI: {cliente.dni}
-                        </div>
-                      )}
+                      <div className="mt-1 flex gap-4 text-xs text-gray-500">
+                        {cliente.dni && (
+                          <span>DNI: {cliente.dni}</span>
+                        )}
 
-                      {cliente.ruc && (
-                        <div className="text-sm text-gray-400">
-                          RUC: {cliente.ruc}
-                        </div>
-                      )}
+                        {cliente.ruc && (
+                          <span>RUC: {cliente.ruc}</span>
+                        )}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -577,81 +634,137 @@ export default function NotaVenta() {
           </div>
 
           {clienteSeleccionado && (
-            <div className="mt-4 rounded-lg border p-4">
-              <p>
-                <span className="font-semibold">
-                  Cliente:
-                </span>{" "}
-                {clienteSeleccionado.nombre}
-              </p>
+            <div className="mt-4 rounded-xl border border-blue-400/15 bg-blue-400/[0.04] p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
+                    Cliente seleccionado
+                  </p>
 
-              {clienteSeleccionado.dni && (
-                <p>
-                  <span className="font-semibold">
-                    DNI:
-                  </span>{" "}
-                  {clienteSeleccionado.dni}
-                </p>
-              )}
+                  <p className="mt-1 text-sm font-bold text-white">
+                    {clienteSeleccionado.nombre}
+                  </p>
+                </div>
 
-              {clienteSeleccionado.ruc && (
-                <p>
-                  <span className="font-semibold">
-                    RUC:
-                  </span>{" "}
-                  {clienteSeleccionado.ruc}
-                </p>
-              )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setClienteSeleccionado(null);
+                    setBusquedaCliente("");
+                  }}
+                  className="text-xs font-semibold text-gray-600 transition hover:text-white"
+                >
+                  Cambiar
+                </button>
+              </div>
 
-              <p>
-                <span className="font-semibold">
-                  Dirección:
-                </span>{" "}
-                {clienteSeleccionado.direccion || "-"}
-              </p>
+              <div className="mt-4 grid grid-cols-1 gap-3 text-xs sm:grid-cols-3">
+                {clienteSeleccionado.dni && (
+                  <div>
+                    <p className="text-gray-600">DNI</p>
+                    <p className="mt-1 font-semibold text-gray-300">
+                      {clienteSeleccionado.dni}
+                    </p>
+                  </div>
+                )}
+
+                {clienteSeleccionado.ruc && (
+                  <div>
+                    <p className="text-gray-600">RUC</p>
+                    <p className="mt-1 font-semibold text-gray-300">
+                      {clienteSeleccionado.ruc}
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-gray-600">Dirección</p>
+                  <p className="mt-1 truncate font-semibold text-gray-300">
+                    {clienteSeleccionado.direccion || "-"}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </section>
 
-        <section className="mt-6 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold">
-            Productos
-          </h2>
+        <section className="mt-5 rounded-2xl border border-white/[0.07] bg-white/[0.035] p-5 md:p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-400/10 text-green-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.6}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M20 7.5L12 3 4 7.5m16 0L12 12 4 7.5m16 0V16.5L12 21l-8-4.5V7.5M12 12v9"
+                />
+              </svg>
+            </div>
 
-          <div className="relative mt-4">
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={busquedaProducto}
-                onChange={(e) =>
-                  setBusquedaProducto(e.target.value)
-                }
-                className="w-full rounded-lg border p-3"
-                placeholder="Buscar producto..."
-              />
+            <div>
+              <h2 className="text-base font-bold text-white">
+                Productos
+              </h2>
+
+              <p className="text-xs text-gray-600">
+                Agrega los productos que forman parte de la venta.
+              </p>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.7}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m21 21-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+
+                <input
+                  type="text"
+                  value={busquedaProducto}
+                  onChange={(e) =>
+                    setBusquedaProducto(e.target.value)
+                  }
+                  className="w-full rounded-xl border border-white/[0.08] bg-black py-3 pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-gray-700 focus:border-green-400/40"
+                  placeholder="Buscar producto..."
+                />
+              </div>
 
               <button
                 type="button"
-                onClick={() =>
-                  setMostrarModalProducto(true)
-                }
-                className="whitespace-nowrap rounded-lg border px-5 py-3"
+                onClick={() => setMostrarModalProducto(true)}
+                className="rounded-xl border border-green-400/20 bg-green-400/10 px-5 py-3 text-xs font-bold text-green-400 transition hover:bg-green-400/15"
               >
-                Nuevo producto
+                + Nuevo producto
               </button>
             </div>
 
             {busquedaProducto &&
               productosFiltrados.length > 0 && (
-                <div className="absolute left-0 right-0 z-10 mt-1 rounded-lg border bg-black shadow">
+                <div className="absolute left-0 right-0 z-20 mt-2 overflow-hidden rounded-xl border border-white/[0.08] bg-[#111111] shadow-2xl">
                   {productosFiltrados.map((producto) => (
                     <button
                       key={producto.id}
                       type="button"
-                      onClick={() =>
-                        agregarProducto(producto)
-                      }
-                      className="block w-full border-b p-3 text-left hover:bg-neutral-800"
+                      onClick={() => agregarProducto(producto)}
+                      className="block w-full border-b border-white/[0.06] p-4 text-left text-sm font-medium text-gray-300 transition last:border-0 hover:bg-white/[0.04] hover:text-white"
                     >
                       {producto.nombre}
                     </button>
@@ -661,136 +774,203 @@ export default function NotaVenta() {
           </div>
 
           {productos.length > 0 ? (
-            <div className="mt-6 overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b text-left">
-                    <th className="p-3">
-                      Producto
-                    </th>
-                    <th className="p-3">
-                      Cantidad
-                    </th>
-                    <th className="p-3">
-                      Precio
-                    </th>
-                    <th className="p-3">
-                      Subtotal
-                    </th>
-                    <th className="p-3"></th>
-                  </tr>
-                </thead>
+            <div className="mt-6 overflow-hidden rounded-xl border border-white/[0.06]">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[700px]">
+                  <thead>
+                    <tr className="border-b border-white/[0.06] bg-white/[0.02] text-left">
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-600">
+                        Producto
+                      </th>
 
-                <tbody>
-                  {productos.map((producto) => (
-                    <tr
-                      key={producto.id}
-                      className="border-b"
-                    >
-                      <td className="p-3">
-                        {producto.nombre}
-                      </td>
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-600">
+                        Cantidad
+                      </th>
 
-                      <td className="p-3">
-                        <input
-                          type="number"
-                          min="1"
-                          value={producto.cantidad}
-                          onChange={(e) => {
-                            const cantidad =
-                              e.target.value;
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-600">
+                        Precio
+                      </th>
 
-                            setProductos(
-                              productos.map((item) =>
-                                item.id === producto.id
-                                  ? {
-                                      ...item,
-                                      cantidad,
-                                    }
-                                  : item
-                              )
-                            );
-                          }}
-                          className="w-20 rounded-lg border p-2"
-                        />
-                      </td>
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-600">
+                        Subtotal
+                      </th>
 
-                      <td className="p-3">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={producto.precio}
-                          onChange={(e) => {
-                            const valor =
-                              e.target.value;
-
-                            setProductos(
-                              productos.map((item) =>
-                                item.id === producto.id
-                                  ? {
-                                      ...item,
-                                      precio: valor,
-                                    }
-                                  : item
-                              )
-                            );
-                          }}
-                          className="w-28 rounded-lg border p-2"
-                        />
-                      </td>
-
-                      <td className="p-3">
-                        S/{" "}
-                        {(
-                          Number(producto.cantidad) *
-                          Number(producto.precio)
-                        ).toFixed(2)}
-                      </td>
-
-                      <td className="p-3">
-                        <button
-                          type="button"
-                          className="text-red-600"
-                          onClick={() =>
-                            eliminarProducto(
-                              producto.id
-                            )
-                          }
-                        >
-                          Eliminar
-                        </button>
-                      </td>
+                      <th className="px-4 py-3" />
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+
+                  <tbody>
+                    {productos.map((producto) => (
+                      <tr
+                        key={producto.id}
+                        className="border-b border-white/[0.05] transition last:border-0 hover:bg-white/[0.02]"
+                      >
+                        <td className="px-4 py-4">
+                          <p className="text-sm font-semibold text-white">
+                            {producto.nombre}
+                          </p>
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <input
+                            type="number"
+                            min="1"
+                            value={producto.cantidad}
+                            onChange={(e) => {
+                              const cantidad = e.target.value;
+
+                              setProductos(
+                                productos.map((item) =>
+                                  item.id === producto.id
+                                    ? {
+                                        ...item,
+                                        cantidad,
+                                      }
+                                    : item
+                                )
+                              );
+                            }}
+                            className="w-20 rounded-lg border border-white/[0.08] bg-black px-3 py-2 text-sm text-white outline-none focus:border-green-400/40"
+                          />
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <div className="relative w-28">
+                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-600">
+                              S/
+                            </span>
+
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={producto.precio}
+                              onChange={(e) => {
+                                const valor = e.target.value;
+
+                                setProductos(
+                                  productos.map((item) =>
+                                    item.id === producto.id
+                                      ? {
+                                          ...item,
+                                          precio: valor,
+                                        }
+                                      : item
+                                  )
+                                );
+                              }}
+                              className="w-full rounded-lg border border-white/[0.08] bg-black py-2 pl-9 pr-2 text-sm text-white outline-none focus:border-green-400/40"
+                            />
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <span className="text-sm font-bold text-white">
+                            S/{" "}
+                            {(
+                              Number(producto.cantidad) *
+                              Number(producto.precio)
+                            ).toFixed(2)}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              eliminarProducto(producto.id)
+                            }
+                            className="rounded-lg px-3 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-400/10"
+                          >
+                            Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
-            <p className="mt-6 text-gray-500">
-              No hay productos agregados.
-            </p>
+            <div className="mt-6 rounded-xl border border-dashed border-white/[0.08] bg-black/30 py-12 text-center">
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.04] text-gray-600">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </div>
+
+              <p className="text-sm font-semibold text-gray-500">
+                No hay productos agregados
+              </p>
+
+              <p className="mt-1 text-xs text-gray-700">
+                Busca un producto arriba para agregarlo a la venta.
+              </p>
+            </div>
           )}
         </section>
 
-        <section className="mt-6 flex justify-end">
-          <div className="text-right">
-            <p className="text-lg text-gray-600">
-              Total
+        <section className="mt-5 flex justify-end">
+          <div className="w-full rounded-2xl border border-green-400/10 bg-green-400/[0.035] p-6 sm:w-auto sm:min-w-[300px]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-600">
+              Total de venta
             </p>
 
-            <p className="text-4xl font-bold">
+            <p className="mt-2 text-right text-4xl font-bold tracking-tight text-white">
               S/ {total.toFixed(2)}
             </p>
           </div>
         </section>
 
-        <section className="mt-6 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold">
-            Método de pago
-          </h2>
+        <section className="mt-5 rounded-2xl border border-white/[0.07] bg-white/[0.035] p-5 md:p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-400/10 text-purple-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.6}
+              >
+                <rect
+                  width="18"
+                  height="14"
+                  x="3"
+                  y="5"
+                  rx="2"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 10h18"
+                />
+              </svg>
+            </div>
 
-          <div className="mt-4 flex flex-wrap gap-3">
+            <div>
+              <h2 className="text-base font-bold text-white">
+                Método de pago
+              </h2>
+
+              <p className="text-xs text-gray-600">
+                Selecciona cómo realizará el pago el cliente.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
             {[
               ["EFECTIVO", "Efectivo"],
               ["YAPE", "Yape"],
@@ -802,14 +982,12 @@ export default function NotaVenta() {
                 key={valor}
                 type="button"
                 onClick={() =>
-                  setMetodoPago(
-                    valor as MetodoPago
-                  )
+                  setMetodoPago(valor as MetodoPago)
                 }
-                className={`rounded-lg border px-5 py-3 transition-colors ${
+                className={`rounded-xl border px-4 py-3 text-xs font-bold transition ${
                   metodoPago === valor
-                    ? "bg-neutral-700 text-white"
-                    : "bg-transparent text-white hover:bg-neutral-800"
+                    ? "border-purple-400/30 bg-purple-400/10 text-purple-400"
+                    : "border-white/[0.08] bg-white/[0.025] text-gray-500 hover:border-white/[0.14] hover:bg-white/[0.05] hover:text-gray-300"
                 }`}
               >
                 {texto}
@@ -818,61 +996,107 @@ export default function NotaVenta() {
           </div>
 
           {metodoPago === "EFECTIVO" && (
-            <div className="mt-6 max-w-sm">
-              <label className="block text-sm font-medium">
+            <div className="mt-6 max-w-sm rounded-xl border border-white/[0.06] bg-black/30 p-4">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600">
                 Monto recibido
               </label>
 
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={montoRecibido}
-                onChange={(e) =>
-                  setMontoRecibido(e.target.value)
-                }
-                className="mt-1 w-full rounded-lg border p-3"
-                placeholder="0.00"
-              />
+              <div className="relative mt-2">
+                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-600">
+                  S/
+                </span>
 
-              <div className="mt-4">
-                <p className="text-sm text-gray-600">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={montoRecibido}
+                  onChange={(e) =>
+                    setMontoRecibido(e.target.value)
+                  }
+                  className="w-full rounded-xl border border-white/[0.08] bg-black py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-purple-400/40"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-4">
+                <span className="text-sm text-gray-500">
                   Vuelto
-                </p>
+                </span>
 
-                <p className="text-2xl font-bold">
+                <span
+                  className={`text-xl font-bold ${
+                    vuelto >= 0
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
+                >
                   S/ {vuelto.toFixed(2)}
-                </p>
+                </span>
               </div>
             </div>
           )}
         </section>
 
-        <div className="mt-8 flex justify-end">
+        <div className="mt-6 flex justify-end">
           <button
             type="button"
-            className="rounded-lg border border-white bg-black px-8 py-4 text-lg font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
             onClick={validarVenta}
             disabled={procesandoVenta}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-500 px-8 py-4 text-sm font-bold text-black transition hover:bg-green-400 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
-            {procesandoVenta
-              ? "Registrando..."
-              : "Emitir Comprobante"}
+            {procesandoVenta ? "Registrando..." : "Emitir comprobante"}
+
+            {!procesandoVenta && (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 12h14m-5-5 5 5-5 5"
+                />
+              </svg>
+            )}
           </button>
         </div>
       </div>
 
       {mostrarModalCliente && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h2 className="text-xl font-bold text-black">
-              Nuevo cliente
-            </h2>
-
-            <div className="mt-6 space-y-4">
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-2xl border border-white/[0.08] bg-[#111111] p-6 shadow-2xl">
+            <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <label className="block text-sm font-medium text-black">
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-400" />
+
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-600">
+                    Clientes
+                  </span>
+                </div>
+
+                <h2 className="text-xl font-bold text-white">
+                  Nuevo cliente
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMostrarModalCliente(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03] text-gray-500 transition hover:bg-white/[0.07] hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600">
                   Tipo de documento
                 </label>
 
@@ -880,72 +1104,51 @@ export default function NotaVenta() {
                   value={nuevoClienteTipoDocumento}
                   onChange={(e) => {
                     const tipo =
-                      e.target.value as
-                        | "DNI"
-                        | "RUC";
+                      e.target.value as "DNI" | "RUC";
 
-                    setNuevoClienteTipoDocumento(
-                      tipo
-                    );
-
-                    setNuevoClienteNumeroDocumento(
-                      ""
-                    );
+                    setNuevoClienteTipoDocumento(tipo);
+                    setNuevoClienteNumeroDocumento("");
                   }}
-                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  className="mt-2 w-full rounded-xl border border-white/[0.08] bg-black p-3 text-sm text-white outline-none focus:border-blue-400/40"
                 >
-                  <option value="DNI">
-                    DNI
-                  </option>
-
-                  <option value="RUC">
-                    RUC
-                  </option>
+                  <option value="DNI">DNI</option>
+                  <option value="RUC">RUC</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600">
                   {nuevoClienteTipoDocumento}
                 </label>
 
-                <div className="mt-1 flex gap-2">
+                <div className="mt-2 flex gap-2">
                   <input
                     type="text"
                     inputMode="numeric"
                     maxLength={
-                      nuevoClienteTipoDocumento ===
-                      "DNI"
+                      nuevoClienteTipoDocumento === "DNI"
                         ? 8
                         : 11
                     }
-                    value={
-                      nuevoClienteNumeroDocumento
-                    }
+                    value={nuevoClienteNumeroDocumento}
                     onChange={(e) =>
                       setNuevoClienteNumeroDocumento(
-                        e.target.value.replace(
-                          /\D/g,
-                          ""
-                        )
+                        e.target.value.replace(/\D/g, "")
                       )
                     }
-                    className="w-full rounded-lg border p-3 text-black"
+                    className="min-w-0 flex-1 rounded-xl border border-white/[0.08] bg-black p-3 text-sm text-white outline-none focus:border-blue-400/40"
                     placeholder={
-                      nuevoClienteTipoDocumento ===
-                      "DNI"
+                      nuevoClienteTipoDocumento === "DNI"
                         ? "DNI de 8 dígitos"
                         : "RUC de 11 dígitos"
                     }
                   />
 
-                  {/* NUEVO: BOTÓN CONSULTAR */}
-
                   <button
                     type="button"
                     onClick={consultarDocumento}
                     disabled={consultandoDocumento}
-                    className="whitespace-nowrap rounded-lg bg-black px-4 py-3 text-sm text-white disabled:opacity-50"
+                    className="whitespace-nowrap rounded-xl bg-blue-500 px-4 py-3 text-xs font-bold text-white transition hover:bg-blue-400 disabled:opacity-50"
                   >
                     {consultandoDocumento
                       ? "Consultando..."
@@ -955,7 +1158,7 @@ export default function NotaVenta() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600">
                   Nombre / Razón Social
                 </label>
 
@@ -963,17 +1166,15 @@ export default function NotaVenta() {
                   type="text"
                   value={nuevoClienteNombre}
                   onChange={(e) =>
-                    setNuevoClienteNombre(
-                      e.target.value
-                    )
+                    setNuevoClienteNombre(e.target.value)
                   }
-                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  className="mt-2 w-full rounded-xl border border-white/[0.08] bg-black p-3 text-sm text-white outline-none focus:border-blue-400/40"
                   placeholder="Nombre o razón social"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600">
                   Dirección
                 </label>
 
@@ -981,23 +1182,19 @@ export default function NotaVenta() {
                   type="text"
                   value={nuevoClienteDireccion}
                   onChange={(e) =>
-                    setNuevoClienteDireccion(
-                      e.target.value
-                    )
+                    setNuevoClienteDireccion(e.target.value)
                   }
-                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  className="mt-2 w-full rounded-xl border border-white/[0.08] bg-black p-3 text-sm text-white outline-none focus:border-blue-400/40"
                   placeholder="Dirección (opcional)"
                 />
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() =>
-                  setMostrarModalCliente(false)
-                }
-                className="rounded-lg border border-black px-5 py-3 text-black"
+                onClick={() => setMostrarModalCliente(false)}
+                className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-3 text-xs font-bold text-gray-400 transition hover:bg-white/[0.07] hover:text-white"
               >
                 Cancelar
               </button>
@@ -1006,7 +1203,7 @@ export default function NotaVenta() {
                 type="button"
                 onClick={registrarCliente}
                 disabled={registrandoCliente}
-                className="rounded-lg bg-black px-5 py-3 text-white disabled:opacity-50"
+                className="rounded-xl bg-blue-500 px-5 py-3 text-xs font-bold text-white transition hover:bg-blue-400 disabled:opacity-50"
               >
                 {registrandoCliente
                   ? "Registrando..."
@@ -1018,15 +1215,35 @@ export default function NotaVenta() {
       )}
 
       {mostrarModalProducto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h2 className="text-xl font-bold text-black">
-              Nuevo producto
-            </h2>
-
-            <div className="mt-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#111111] p-6 shadow-2xl">
+            <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <label className="block text-sm font-medium text-black">
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-400" />
+
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-600">
+                    Productos
+                  </span>
+                </div>
+
+                <h2 className="text-xl font-bold text-white">
+                  Nuevo producto
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMostrarModalProducto(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03] text-gray-500 transition hover:bg-white/[0.07] hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600">
                   Nombre
                 </label>
 
@@ -1034,43 +1251,43 @@ export default function NotaVenta() {
                   type="text"
                   value={nuevoProductoNombre}
                   onChange={(e) =>
-                    setNuevoProductoNombre(
-                      e.target.value
-                    )
+                    setNuevoProductoNombre(e.target.value)
                   }
-                  className="mt-1 w-full rounded-lg border p-3 text-black"
+                  className="mt-2 w-full rounded-xl border border-white/[0.08] bg-black p-3 text-sm text-white outline-none focus:border-green-400/40"
                   placeholder="Nombre del producto"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600">
                   Precio base
                 </label>
 
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={nuevoProductoPrecio}
-                  onChange={(e) =>
-                    setNuevoProductoPrecio(
-                      e.target.value
-                    )
-                  }
-                  className="mt-1 w-full rounded-lg border p-3 text-black"
-                  placeholder="0.00"
-                />
+                <div className="relative mt-2">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-600">
+                    S/
+                  </span>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={nuevoProductoPrecio}
+                    onChange={(e) =>
+                      setNuevoProductoPrecio(e.target.value)
+                    }
+                    className="w-full rounded-xl border border-white/[0.08] bg-black py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-green-400/40"
+                    placeholder="0.00"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() =>
-                  setMostrarModalProducto(false)
-                }
-                className="rounded-lg border border-black px-5 py-3 text-black"
+                onClick={() => setMostrarModalProducto(false)}
+                className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-3 text-xs font-bold text-gray-400 transition hover:bg-white/[0.07] hover:text-white"
               >
                 Cancelar
               </button>
@@ -1079,7 +1296,7 @@ export default function NotaVenta() {
                 type="button"
                 onClick={registrarProducto}
                 disabled={registrandoProducto}
-                className="rounded-lg bg-black px-5 py-3 text-white disabled:opacity-50"
+                className="rounded-xl bg-green-500 px-5 py-3 text-xs font-bold text-black transition hover:bg-green-400 disabled:opacity-50"
               >
                 {registrandoProducto
                   ? "Registrando..."
@@ -1091,27 +1308,33 @@ export default function NotaVenta() {
       )}
 
       {mostrarModalImpresion && ventaEmitida && (
-        <div className="modal-impresion fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[90vh] overflow-auto rounded-lg bg-neutral-100 p-6 shadow-xl">
-            <h2 className="mb-4 text-center text-xl font-bold text-black">
-              Vista previa del comprobante
-            </h2>
+        <div className="modal-impresion fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] overflow-auto rounded-2xl border border-white/[0.08] bg-neutral-100 p-6 shadow-2xl">
+            <div className="mb-5 text-center">
+              <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-700">
+                ✓
+              </div>
 
-            {ventaRegistrada && (
-              <p className="mb-4 text-center font-semibold text-green-700">
-                ✓ Venta registrada correctamente
-              </p>
-            )}
+              <h2 className="text-xl font-bold text-black">
+                Vista previa del comprobante
+              </h2>
+
+              {ventaRegistrada && (
+                <p className="mt-2 text-sm font-semibold text-green-700">
+                  Venta registrada correctamente
+                </p>
+              )}
+            </div>
 
             <ComprobantePreview
               venta={ventaEmitida}
             />
 
-            <div className="botones-impresion mt-6 flex justify-end gap-3">
+            <div className="botones-impresion mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={limpiarVenta}
-                className="rounded-lg border border-black px-5 py-3 text-black"
+                className="rounded-xl border border-black/10 bg-white px-5 py-3 text-xs font-bold text-black transition hover:bg-gray-100"
               >
                 Cancelar
               </button>
@@ -1119,7 +1342,7 @@ export default function NotaVenta() {
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="rounded-lg bg-black px-5 py-3 text-white"
+                className="rounded-xl bg-black px-5 py-3 text-xs font-bold text-white transition hover:bg-neutral-800"
               >
                 Imprimir
               </button>
